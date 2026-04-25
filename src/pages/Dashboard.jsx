@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Dashboard({ languages, words, addLanguage, deleteLanguage, onSelectLanguage, isLoading }) {
+function Dashboard({ languages, words, addLanguage, deleteLanguage, onSelectLanguage, isLoading, t }) {
   const [newLangName, setNewLangName] = useState('');
 
   const handleAdd = (e) => {
@@ -14,21 +14,21 @@ function Dashboard({ languages, words, addLanguage, deleteLanguage, onSelectLang
   return (
     <div className="dashboard">
       <div className="page-header">
-        <h2>Your Languages</h2>
+        <h2>{t.yourLanguages}</h2>
       </div>
 
       <form className="form-row" onSubmit={handleAdd}>
         <div className="form-group">
-          <label>Add new language</label>
+          <label>{t.addNewLanguage}</label>
           <input 
             type="text" 
-            placeholder="e.g., Spanish, Japanese..." 
+            placeholder={t.languagePlaceholder} 
             value={newLangName}
             onChange={(e) => setNewLangName(e.target.value)}
           />
         </div>
         <button type="submit" className="btn btn-primary" disabled={!newLangName.trim()}>
-          Add Language
+          {t.addLanguage}
         </button>
       </form>
 
@@ -47,8 +47,8 @@ function Dashboard({ languages, words, addLanguage, deleteLanguage, onSelectLang
         </div>
       ) : languages.length === 0 ? (
         <div className="empty-state">
-          <h3>No languages yet</h3>
-          <p>Start your learning journey by adding a language above.</p>
+          <h3>{t.noLanguages}</h3>
+          <p>{t.noLanguagesDesc}</p>
         </div>
       ) : (
         <div className="grid">
@@ -58,7 +58,7 @@ function Dashboard({ languages, words, addLanguage, deleteLanguage, onSelectLang
               <div key={lang.id} className="card">
                 <h3 style={{ fontSize: '1.4rem', marginBottom: '10px' }}>{lang.name}</h3>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                  {wordCount} {wordCount === 1 ? 'word' : 'words'} saved
+                  {wordCount} {wordCount === 1 ? t.word : t.words}
                 </p>
                 <div className="button-group">
                   <button 
@@ -66,14 +66,14 @@ function Dashboard({ languages, words, addLanguage, deleteLanguage, onSelectLang
                     style={{ flex: 1 }}
                     onClick={() => onSelectLanguage(lang.id)}
                   >
-                    View Vocab
+                    {t.viewVocab}
                   </button>
                   <button 
                     className="btn btn-danger"
                     onClick={() => deleteLanguage(lang.id)}
-                    title="Delete language"
+                    title={t.delete}
                   >
-                    Delete
+                    {t.delete}
                   </button>
                 </div>
               </div>

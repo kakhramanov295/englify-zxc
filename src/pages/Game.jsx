@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Game({ languages, words, isLoading }) {
+function Game({ languages, words, isLoading, t }) {
   const [gameActive, setGameActive] = useState(false);
   const [currentWord, setCurrentWord] = useState(null);
   const [guess, setGuess] = useState('');
@@ -44,12 +44,12 @@ function Game({ languages, words, isLoading }) {
     }));
 
     if (isCorrect) {
-      setResult({ type: 'success', message: 'Correct!' });
+      setResult({ type: 'success', message: t.correct });
       setTimeout(() => pickNextWord(), 1500);
     } else {
       setResult({ 
         type: 'error', 
-        message: `Incorrect. The correct answer was "${currentWord.translation}".` 
+        message: `${t.incorrect} "${currentWord.translation}".` 
       });
       setTimeout(() => pickNextWord(), 2500);
     }
@@ -76,8 +76,8 @@ function Game({ languages, words, isLoading }) {
     return (
       <div className="game-container">
         <div className="empty-state">
-          <h3>No words available</h3>
-          <p>You need to add some vocabulary in the Dashboard before you can play the game.</p>
+          <h3>{t.noWordsAvailable}</h3>
+          <p>{t.noWordsAvailableDesc}</p>
         </div>
       </div>
     );
@@ -87,24 +87,24 @@ function Game({ languages, words, isLoading }) {
     <div className="game-container">
       {!gameActive ? (
         <div className="card game-card">
-          <h2 style={{ marginBottom: '20px', fontSize: '2rem' }}>Practice Mode</h2>
+          <h2 style={{ marginBottom: '20px', fontSize: '2rem' }}>{t.practiceMode}</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>
-            Test your knowledge by translating the words correctly.
+            {t.practiceDesc}
           </p>
           
           <div className="form-group" style={{ textAlign: 'left', marginBottom: '30px' }}>
-            <label>Select Language to Practice</label>
+            <label>{t.selectLanguage}</label>
             <select 
               value={selectedLanguage} 
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
-              <option value="all">All Languages ({words.length} words)</option>
+              <option value="all">{t.allLanguages} ({words.length} {words.length === 1 ? t.word : t.words})</option>
               {languages.map(lang => {
                 const count = words.filter(w => w.languageId === lang.id).length;
                 if (count > 0) {
                   return (
                     <option key={lang.id} value={lang.id}>
-                      {lang.name} ({count} words)
+                      {lang.name} ({count} {count === 1 ? t.word : t.words})
                     </option>
                   );
                 }
@@ -122,18 +122,18 @@ function Game({ languages, words, isLoading }) {
               (selectedLanguage !== 'all' && words.filter(w => w.languageId === selectedLanguage).length === 0)
             }
           >
-            Start Game
+            {t.startGame}
           </button>
         </div>
       ) : (
         <div className="card game-card">
           <div className="game-stats">
-            <div>Score: <strong style={{ color: 'var(--text-main)' }}>{score.correct} / {score.total}</strong></div>
-            <button className="btn" onClick={stopGame}>End Game</button>
+            <div>{t.score}: <strong style={{ color: 'var(--text-main)' }}>{score.correct} / {score.total}</strong></div>
+            <button className="btn" onClick={stopGame}>{t.endGame}</button>
           </div>
 
           <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>
-            Translate to English:
+            {t.translateToEnglish}
           </div>
           <div className="current-word">
             {currentWord?.original}
@@ -143,7 +143,7 @@ function Game({ languages, words, isLoading }) {
             <div className="game-input-group">
               <input 
                 type="text" 
-                placeholder="Type translation here..." 
+                placeholder="..." 
                 value={guess}
                 onChange={(e) => setGuess(e.target.value)}
                 disabled={!!result}
@@ -154,7 +154,7 @@ function Game({ languages, words, isLoading }) {
                 className="btn btn-primary"
                 disabled={!!result || !guess.trim()}
               >
-                Submit
+                {t.addWord}
               </button>
             </div>
           </form>

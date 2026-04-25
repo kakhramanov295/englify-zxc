@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading }) {
+function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading, t }) {
   const [original, setOriginal] = useState('');
   const [translation, setTranslation] = useState('');
 
@@ -8,7 +8,7 @@ function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading })
     return (
       <div className="empty-state">
         <h3>Language not found</h3>
-        <button className="btn" onClick={onBack}>Go Back</button>
+        <button className="btn" onClick={onBack}>{t.back}</button>
       </div>
     );
   }
@@ -26,17 +26,17 @@ function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading })
     <div className="vocabulary">
       <div className="page-header">
         <div className="page-title-group">
-          <button className="btn" onClick={onBack}>← Back</button>
-          <h2>{language?.name || 'Loading...'} Vocabulary</h2>
+          <button className="btn" onClick={onBack}>← {t.back}</button>
+          <h2>{language?.name || '...'} {t.vocabularyTitle}</h2>
         </div>
         <div style={{ color: 'var(--text-secondary)' }}>
-          {!isLoading && `${words.length} ${words.length === 1 ? 'word' : 'words'}`}
+          {!isLoading && `${words.length} ${words.length === 1 ? t.word : t.words}`}
         </div>
       </div>
 
       <form className="form-row" onSubmit={handleAdd}>
         <div className="form-group">
-          <label>Word in {language.name}</label>
+          <label>{t.wordIn} {language?.name}</label>
           <input 
             type="text" 
             placeholder="e.g., Hola" 
@@ -45,7 +45,7 @@ function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading })
           />
         </div>
         <div className="form-group">
-          <label>Translation</label>
+          <label>{t.translation}</label>
           <input 
             type="text" 
             placeholder="e.g., Hello" 
@@ -58,7 +58,7 @@ function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading })
           className="btn btn-primary"
           disabled={!original.trim() || !translation.trim()}
         >
-          Add Word
+          {t.addWord}
         </button>
       </form>
 
@@ -82,8 +82,8 @@ function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading })
         </div>
       ) : words.length === 0 ? (
         <div className="empty-state">
-          <h3>No words added</h3>
-          <p>Add some vocabulary to start practicing!</p>
+          <h3>{t.noWords}</h3>
+          <p>{t.noWordsDesc}</p>
         </div>
       ) : (
         <div className="word-list">
@@ -91,11 +91,11 @@ function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading })
             <div key={word.id} className="word-item">
               <div className="word-details">
                 <div>
-                  <div className="word-label">Original</div>
+                  <div className="word-label">{t.original}</div>
                   <div className="word-value">{word.original}</div>
                 </div>
                 <div>
-                  <div className="word-label">Translation</div>
+                  <div className="word-label">{t.translation}</div>
                   <div className="word-value">{word.translation}</div>
                 </div>
               </div>
@@ -103,7 +103,7 @@ function Vocabulary({ language, words, addWord, deleteWord, onBack, isLoading })
                 className="btn btn-danger"
                 onClick={() => deleteWord(word.id)}
               >
-                Delete
+                {t.delete}
               </button>
             </div>
           ))}

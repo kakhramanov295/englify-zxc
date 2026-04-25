@@ -4,11 +4,20 @@ import Dashboard from './pages/Dashboard';
 import Vocabulary from './pages/Vocabulary';
 import Game from './pages/Game';
 import { supabase } from './supabaseClient';
+import { translations } from './translations';
 import './index.css';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [activeLanguageId, setActiveLanguageId] = useState(null);
+  const [uiLanguage, setUiLanguage] = useState(localStorage.getItem('uiLanguage') || 'en');
+  
+  const t = translations[uiLanguage];
+
+  const changeLanguage = (lang) => {
+    setUiLanguage(lang);
+    localStorage.setItem('uiLanguage', lang);
+  };
   
   // Real auth state
   const [user, setUser] = useState(null);
@@ -157,6 +166,9 @@ function App() {
         currentPage={currentPage} 
         setCurrentPage={setCurrentPage}
         user={user}
+        t={t}
+        uiLanguage={uiLanguage}
+        changeLanguage={changeLanguage}
       />
       
       <main>
@@ -175,6 +187,7 @@ function App() {
             deleteLanguage={deleteLanguage}
             onSelectLanguage={navigateToVocab}
             isLoading={loading}
+            t={t}
           />
         )}
         
@@ -186,6 +199,7 @@ function App() {
             deleteWord={deleteWord}
             onBack={() => setCurrentPage('dashboard')}
             isLoading={loading}
+            t={t}
           />
         )}
 
@@ -194,6 +208,7 @@ function App() {
             languages={languages}
             words={words}
             isLoading={loading}
+            t={t}
           />
         )}
       </main>

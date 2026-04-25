@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
-function Header({ currentPage, setCurrentPage, user }) {
+function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLanguage }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState('login'); // 'login' or 'register'
+  const [modalType, setModalType] = useState('login');
   
   // Form states
   const [email, setEmail] = useState('');
@@ -89,21 +89,32 @@ function Header({ currentPage, setCurrentPage, user }) {
             className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} 
             onClick={() => setCurrentPage('dashboard')}
           >
-            Dashboard
+            {t.dashboard}
           </button>
           <button 
             className={currentPage === 'game' ? 'active' : ''} 
             onClick={() => setCurrentPage('game')}
           >
-            Game Mode
+            {t.gameMode}
           </button>
         </nav>
 
         <div className="auth-buttons">
+          <select 
+            className="lang-select" 
+            value={uiLanguage} 
+            onChange={(e) => changeLanguage(e.target.value)}
+            style={{ width: 'auto', padding: '6px 10px', fontSize: '0.85rem', marginRight: '10px' }}
+          >
+            <option value="en">EN</option>
+            <option value="ru">RU</option>
+            <option value="uz">UZ</option>
+          </select>
+
           {!user ? (
             <>
-              <button className="btn" onClick={() => openModal('login')}>Login</button>
-              <button className="btn btn-primary" onClick={() => openModal('register')}>Register</button>
+              <button className="btn" onClick={() => openModal('login')}>{t.login}</button>
+              <button className="btn btn-primary" onClick={() => openModal('register')}>{t.register}</button>
             </>
           ) : (
             <div className="user-profile">
@@ -113,7 +124,7 @@ function Header({ currentPage, setCurrentPage, user }) {
                 className="profile-avatar"
               />
               <span className="profile-name">{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
-              <button className="btn btn-danger" onClick={handleLogout} style={{ marginLeft: '10px', padding: '8px 16px', fontSize: '0.85rem' }}>Logout</button>
+              <button className="btn btn-danger" onClick={handleLogout} style={{ marginLeft: '10px', padding: '8px 16px', fontSize: '0.85rem' }}>{t.logout}</button>
             </div>
           )}
         </div>
@@ -123,11 +134,9 @@ function Header({ currentPage, setCurrentPage, user }) {
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setIsModalOpen(false)}>&times;</button>
-            <h2>{modalType === 'login' ? 'Welcome Back' : 'Create an Account'}</h2>
+            <h2>{modalType === 'login' ? t.welcomeBack : t.createAccount}</h2>
             <p>
-              {modalType === 'login' 
-                ? 'Enter your details to log in to your account.' 
-                : 'Registration is optional, but allows you to save progress across devices!'}
+              {modalType === 'login' ? t.authDesc : t.regDesc}
             </p>
             
             {error && <div style={{ color: '#ff4d4d', marginBottom: '15px', padding: '10px', background: 'rgba(255, 77, 77, 0.1)', borderRadius: '6px', fontSize: '0.9rem' }}>{error}</div>}
@@ -135,17 +144,17 @@ function Header({ currentPage, setCurrentPage, user }) {
             <form onSubmit={handleAuth}>
               {modalType === 'register' && (
                 <div className="form-group">
-                  <label>Name (optional)</label>
+                  <label>{t.name}</label>
                   <input 
                     type="text" 
-                    placeholder="Your name" 
+                    placeholder="..." 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </div>
               )}
               <div className="form-group">
-                <label>Email</label>
+                <label>{t.email}</label>
                 <input 
                   type="email" 
                   placeholder="you@example.com" 
@@ -155,7 +164,7 @@ function Header({ currentPage, setCurrentPage, user }) {
                 />
               </div>
               <div className="form-group">
-                <label>Password</label>
+                <label>{t.password}</label>
                 <input 
                   type="password" 
                   placeholder="••••••••" 
@@ -166,12 +175,12 @@ function Header({ currentPage, setCurrentPage, user }) {
                 />
               </div>
               <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
-                {loading ? 'Processing...' : (modalType === 'login' ? 'Login' : 'Register')}
+                {loading ? t.processing : (modalType === 'login' ? t.login : t.register)}
               </button>
             </form>
 
             <div className="divider">
-              <span>OR</span>
+              <span>{t.or}</span>
             </div>
             
             <button 
@@ -188,7 +197,7 @@ function Header({ currentPage, setCurrentPage, user }) {
                 <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                 <path fill="none" d="M0 0h48v48H0z"/>
               </svg>
-              Sign in with Google
+              {t.googleSignIn}
             </button>
           </div>
         </div>
