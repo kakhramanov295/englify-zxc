@@ -179,37 +179,49 @@ function App() {
           </div>
         )}
 
-        {currentPage === 'dashboard' && (
-          <Dashboard 
-            languages={languages} 
-            words={words}
-            addLanguage={addLanguage}
-            deleteLanguage={deleteLanguage}
-            onSelectLanguage={navigateToVocab}
-            isLoading={loading}
-            t={t}
-          />
-        )}
-        
-        {currentPage === 'vocabulary' && (
-          <Vocabulary 
-            language={languages.find(l => l.id === activeLanguageId)}
-            words={words.filter(w => w.languageId === activeLanguageId)}
-            addWord={addWord}
-            deleteWord={deleteWord}
-            onBack={() => setCurrentPage('dashboard')}
-            isLoading={loading}
-            t={t}
-          />
-        )}
+        {!user && !loading ? (
+          <section className="hero-section">
+            <h1>{t.heroTitle}</h1>
+            <p>{t.heroDesc}</p>
+            <button className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.1rem' }} onClick={() => document.querySelector('.btn-primary').click()}>
+              {t.getStarted}
+            </button>
+          </section>
+        ) : (
+          <>
+            {currentPage === 'dashboard' && (
+              <Dashboard 
+                languages={languages} 
+                words={words}
+                addLanguage={addLanguage}
+                deleteLanguage={deleteLanguage}
+                onSelectLanguage={navigateToVocab}
+                isLoading={loading}
+                t={t}
+              />
+            )}
+            
+            {currentPage === 'vocabulary' && (
+              <Vocabulary 
+                language={languages.find(l => l.id === activeLanguageId)}
+                words={words.filter(w => w.languageId === activeLanguageId)}
+                addWord={addWord}
+                deleteWord={deleteWord}
+                onBack={() => setCurrentPage('dashboard')}
+                isLoading={loading}
+                t={t}
+              />
+            )}
 
-        {currentPage === 'game' && (
-          <Game 
-            languages={languages}
-            words={words}
-            isLoading={loading}
-            t={t}
-          />
+            {currentPage === 'game' && (
+              <Game 
+                languages={languages}
+                words={words}
+                isLoading={loading}
+                t={t}
+              />
+            )}
+          </>
         )}
       </main>
     </div>

@@ -100,16 +100,26 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
         </nav>
 
         <div className="auth-buttons">
-          <select 
-            className="lang-select" 
-            value={uiLanguage} 
-            onChange={(e) => changeLanguage(e.target.value)}
-            style={{ width: 'auto', padding: '6px 10px', fontSize: '0.85rem', marginRight: '10px' }}
-          >
-            <option value="en">EN</option>
-            <option value="ru">RU</option>
-            <option value="uz">UZ</option>
-          </select>
+          <div className="lang-switcher">
+            <button 
+              className={`lang-btn ${uiLanguage === 'en' ? 'active' : ''}`}
+              onClick={() => changeLanguage('en')}
+            >
+              EN
+            </button>
+            <button 
+              className={`lang-btn ${uiLanguage === 'ru' ? 'active' : ''}`}
+              onClick={() => changeLanguage('ru')}
+            >
+              RU
+            </button>
+            <button 
+              className={`lang-btn ${uiLanguage === 'uz' ? 'active' : ''}`}
+              onClick={() => changeLanguage('uz')}
+            >
+              UZ
+            </button>
+          </div>
 
           {!user ? (
             <>

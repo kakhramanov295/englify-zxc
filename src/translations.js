@@ -44,7 +44,10 @@ export const translations = {
     password: "Password",
     or: "OR",
     googleSignIn: "Sign in with Google",
-    processing: "Processing..."
+    processing: "Processing...",
+    heroTitle: "Master Any Language with Lingvo",
+    heroDesc: "The smartest way to build your personal vocabulary. Save words, practice with games, and track your progress across any language.",
+    getStarted: "Get Started for Free"
   },
   ru: {
     dashboard: "Главная",
@@ -91,7 +94,10 @@ export const translations = {
     password: "Пароль",
     or: "ИЛИ",
     googleSignIn: "Войти через Google",
-    processing: "Загрузка..."
+    processing: "Загрузка...",
+    heroTitle: "Освойте любой язык с Lingvo",
+    heroDesc: "Умный способ пополнения вашего словарного запаса. Сохраняйте слова, практикуйтесь в играх и отслеживайте прогресс.",
+    getStarted: "Начать бесплатно"
   },
   uz: {
     dashboard: "Asosiy",
@@ -138,6 +144,9 @@ export const translations = {
     password: "Parol",
     or: "YOKI",
     googleSignIn: "Google orqali kirish",
-    processing: "Yuklanmoqda..."
+    processing: "Yuklanmoqda...",
+    heroTitle: "Lingvo bilan istalgan tilni o'rganing",
+    heroDesc: "Shaxsiy lug'at boyligingizni oshirishning eng aqlli usuli. So'zlarni saqlang, o'yinlar bilan mashq qiling va natijalarni kuzatib boring.",
+    getStarted: "Bepul boshlash"
   }
 };
