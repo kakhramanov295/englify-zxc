@@ -4,10 +4,11 @@ import { supabase } from '../supabaseClient';
 function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
   const [selectedLang, setSelectedLang] = useState('English');
   const [selectedLevel, setSelectedLevel] = useState(null);
+  const [shuffledWords, setShuffledWords] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState(null);
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
-  const [sessionWords, setSessionWords] = useState([]);
   const [fetching, setFetching] = useState(false);
 
   const fallbackWords = {
@@ -26,6 +27,38 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     ]
   };
 
+  // Deep reset on language change
+  useEffect(() => {
+    setSelectedLevel(null);
+    setShuffledWords([]);
+    setCurrentIndex(0);
+    setCurrentWord(null);
+    setResult(null);
+  }, [selectedLang]);
+
+  // Update currentWord when index or list changes
+  useEffect(() => {
+    if (shuffledWords.length > 0 && currentIndex < shuffledWords.length) {
+      const rawWord = shuffledWords[currentIndex];
+      
+      let targetLang = uiLanguage;
+      if (selectedLang.toLowerCase() === 'english' && uiLanguage === 'en') targetLang = 'ru';
+      else if (selectedLang.toLowerCase() === 'german' && uiLanguage === 'de') targetLang = 'en';
+
+      const translation = targetLang === 'ru' ? rawWord.translation_ru : 
+                          targetLang === 'uz' ? rawWord.translation_uz : 
+                          rawWord.translation_en;
+
+      setCurrentWord({ ...rawWord, translation });
+      setGuess('');
+      setResult(null);
+    } else if (shuffledWords.length > 0 && currentIndex >= shuffledWords.length) {
+      // Session finished
+      alert(t.congrats || "Session finished!");
+      setSelectedLevel(null);
+    }
+  }, [currentIndex, shuffledWords, uiLanguage]);
+
   const startSession = async (level) => {
     setFetching(true);
     try {
@@ -35,22 +68,22 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
         .eq('language', selectedLang)
         .eq('level', level);
 
-      // Filter fallbacks by language if Supabase is empty
       const localPool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
       const pool = (data && data.length > 0) ? data : localPool;
 
       if (pool.length > 0) {
-        setSessionWords(pool);
-        pickRandomWord(pool);
+        const shuffled = [...pool].sort(() => Math.random() - 0.5);
+        setShuffledWords(shuffled);
+        setCurrentIndex(0);
         setSelectedLevel(level);
       } else {
         alert(`No words available for ${selectedLang} at this level.`);
       }
     } catch (err) {
-      const pool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
-      if (pool.length > 0) {
-        setSessionWords(pool);
-        pickRandomWord(pool);
+      const localPool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
+      if (localPool.length > 0) {
+        setShuffledWords([...localPool].sort(() => Math.random() - 0.5));
+        setCurrentIndex(0);
         setSelectedLevel(level);
       }
     } finally {
@@ -58,28 +91,8 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     }
   };
 
-  const pickRandomWord = (pool) => {
-    if (!pool || pool.length === 0) return;
-    const random = pool[Math.floor(Math.random() * pool.length)];
-    
-    // DECISION LOGIC: Determine the target translation language
-    // Avoid translating English to English, Russian to Russian, etc.
-    let targetLang = uiLanguage;
-    
-    // If Source and Target are the same, try to find a fallback target
-    if (selectedLang.toLowerCase() === 'english' && uiLanguage === 'en') {
-      targetLang = 'ru'; // Fallback to Russian if trying to translate English to English
-    } else if (selectedLang.toLowerCase() === 'german' && uiLanguage === 'de') {
-      targetLang = 'en';
-    }
-
-    const translation = targetLang === 'ru' ? random.translation_ru : 
-                        targetLang === 'uz' ? random.translation_uz : 
-                        random.translation_en;
-    
-    setCurrentWord({ ...random, translation });
-    setGuess('');
-    setResult(null);
+  const nextWord = () => {
+    setCurrentIndex(prev => prev + 1);
   };
 
   const handleCheck = (e) => {
@@ -89,10 +102,7 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     const isCorrect = guess.toLowerCase().trim() === currentWord.translation.toLowerCase().trim();
     if (isCorrect) {
       setResult({ type: 'success', message: t.correct });
-      // Auto-next after 1.5s
-      setTimeout(() => {
-        pickRandomWord(sessionWords);
-      }, 1500);
+      setTimeout(nextWord, 1500);
     } else {
       setResult({ type: 'error', message: `${t.incorrect} "${currentWord.translation}"` });
     }
@@ -102,7 +112,7 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     const lang = languages.find(l => l.name.toLowerCase() === selectedLang.toLowerCase());
     if (lang) {
       addWord(lang.id, currentWord.word, currentWord.translation);
-      pickRandomWord(sessionWords);
+      nextWord();
     } else {
       alert(`Please add ${selectedLang} to your Library first!`);
     }
@@ -147,7 +157,9 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
       </div>
 
       <div className="card game-card">
-        <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>{t.word}:</div>
+        <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>
+          {t.word} {currentIndex + 1} / {shuffledWords.length}:
+        </div>
         <div className="current-word">{currentWord?.word}</div>
 
         <form onSubmit={handleCheck}>
@@ -163,7 +175,7 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
             {!result ? (
               <button type="submit" className="btn btn-primary" disabled={!guess.trim()}>{t.checkAnswer}</button>
             ) : (
-              <button type="button" className="btn" onClick={() => pickRandomWord(sessionWords)}>{t.nextWord}</button>
+              <button type="button" className="btn" onClick={nextWord}>{t.nextWord}</button>
             )}
           </div>
         </form>

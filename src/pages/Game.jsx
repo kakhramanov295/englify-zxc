@@ -9,6 +9,8 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
   const [gameWords, setGameWords] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState('all');
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const startGame = () => {
     let pool = words;
     if (selectedLanguage !== 'all') {
@@ -17,24 +19,33 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
 
     if (pool.length === 0) return;
 
-    setGameWords(pool);
+    // Shuffle and start
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    setGameWords(shuffled);
+    setCurrentIndex(0);
+    setCurrentWord(shuffled[0]);
     setScore({ correct: 0, total: 0 });
-    pickNextWord(pool);
     setGameActive(true);
     setResult(null);
+    setGuess('');
   };
 
-  const pickNextWord = (pool = gameWords) => {
-    if (pool.length === 0) return;
-    const randomIndex = Math.floor(Math.random() * pool.length);
-    setCurrentWord(pool[randomIndex]);
-    setGuess('');
-    setResult(null);
+  const nextWord = () => {
+    const nextIdx = currentIndex + 1;
+    if (nextIdx < gameWords.length) {
+      setCurrentIndex(nextIdx);
+      setCurrentWord(gameWords[nextIdx]);
+      setGuess('');
+      setResult(null);
+    } else {
+      alert(t.congrats || "Game finished!");
+      stopGame();
+    }
   };
 
   const handleGuess = (e) => {
     e.preventDefault();
-    if (!guess.trim() || !currentWord) return;
+    if (!guess.trim() || !currentWord || result) return;
 
     const isCorrect = guess.toLowerCase().trim() === currentWord.translation.toLowerCase().trim();
     
@@ -50,13 +61,12 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
 
     if (isCorrect) {
       setResult({ type: 'success', message: t.correct });
-      setTimeout(() => pickNextWord(), 1500);
+      setTimeout(nextWord, 1500);
     } else {
       setResult({ 
         type: 'error', 
         message: `${t.incorrect} "${currentWord.translation}".` 
       });
-      setTimeout(() => pickNextWord(), 2500);
     }
   };
 
@@ -165,8 +175,19 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
           </form>
 
           {result && (
-            <div className={`result-message ${result.type === 'success' ? 'result-success' : 'result-error'}`}>
-              {result.message}
+            <div style={{ marginTop: '20px' }}>
+              <div className={`result-message ${result.type === 'success' ? 'result-success' : 'result-error'}`}>
+                {result.message}
+              </div>
+              {result.type === 'error' && (
+                <button 
+                  className="btn btn-primary" 
+                  style={{ width: '100%', marginTop: '15px' }} 
+                  onClick={nextWord}
+                >
+                  {t.nextWord}
+                </button>
+              )}
             </div>
           )}
         </div>
