@@ -12,16 +12,30 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
   const fallbackWords = {
     'A1-A2': [
       { word: "Family", translation_en: "Family", translation_ru: "Семья", translation_uz: "Oila", language: "English" },
+      { word: "Friend", translation_en: "Friend", translation_ru: "Друг", translation_uz: "Do'st", language: "English" },
+      { word: "Bread", translation_en: "Bread", translation_ru: "Хлеб", translation_uz: "Non", language: "English" },
       { word: "Haus", translation_en: "House", translation_ru: "Дом", translation_uz: "Uy", language: "German" },
-      { word: "Amigo", translation_en: "Friend", translation_ru: "Друг", translation_uz: "Do'st", language: "Spanish" }
+      { word: "Brot", translation_en: "Bread", translation_ru: "Хлеб", translation_uz: "Non", language: "German" },
+      { word: "Wasser", translation_en: "Water", translation_ru: "Вода", translation_uz: "Suv", language: "German" },
+      { word: "Amigo", translation_en: "Friend", translation_ru: "Друг", translation_uz: "Do'st", language: "Spanish" },
+      { word: "Hola", translation_en: "Hello", translation_ru: "Привет", translation_uz: "Salom", language: "Spanish" },
+      { word: "Agua", translation_en: "Water", translation_ru: "Вода", translation_uz: "Suv", language: "Spanish" }
     ],
     'B1-B2': [
       { word: "Environment", translation_en: "Environment", translation_ru: "Окружающая среда", translation_uz: "Atrof-muhit", language: "English" },
-      { word: "Erfahrung", translation_en: "Experience", translation_ru: "Опыт", translation_uz: "Tajriba", language: "German" }
+      { word: "Experience", translation_en: "Experience", translation_ru: "Опыт", translation_uz: "Tajriba", language: "English" },
+      { word: "Knowledge", translation_en: "Knowledge", translation_ru: "Знание", translation_uz: "Bilim", language: "English" },
+      { word: "Erfahrung", translation_en: "Experience", translation_ru: "Опыт", translation_uz: "Tajriba", language: "German" },
+      { word: "Umwelt", translation_en: "Environment", translation_ru: "Окружающая среда", translation_uz: "Atrof-muhit", language: "German" },
+      { word: "Wissenschaft", translation_en: "Science", translation_ru: "Наука", translation_uz: "Fan", language: "German" }
     ],
     'C1-C2': [
       { word: "Phenomenon", translation_en: "Phenomenon", translation_ru: "Феномен", translation_uz: "Fenomen", language: "English" },
-      { word: "Herausforderung", translation_en: "Challenge", translation_ru: "Вызов", translation_uz: "Qiyinchilik", language: "German" }
+      { word: "Ambiguity", translation_en: "Ambiguity", translation_ru: "Двусмысленность", translation_uz: "Noaniqlik", language: "English" },
+      { word: "Versatility", translation_en: "Versatility", translation_ru: "Универсальность", translation_uz: "Ko'p qirralilik", language: "English" },
+      { word: "Herausforderung", translation_en: "Challenge", translation_ru: "Вызов", translation_uz: "Qiyinchilik", language: "German" },
+      { word: "Bewusstsein", translation_en: "Consciousness", translation_ru: "Сознание", translation_uz: "Ong", language: "German" },
+      { word: "Gerechtigkeit", translation_en: "Justice", translation_ru: "Справедливость", translation_uz: "Adolat", language: "German" }
     ]
   };
 
