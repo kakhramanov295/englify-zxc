@@ -52,7 +52,6 @@ function App() {
     if (data) {
       setUiLanguage(data.ui_language);
     } else if (error && error.code === 'PGRST116') {
-      // If settings don't exist, create default
       await supabase.from('user_settings').insert([{ user_id: userId, ui_language: 'en' }]);
     }
   };
@@ -86,7 +85,7 @@ function App() {
   }, [user]);
 
   const addLanguage = async (name) => {
-    const { data, error } = await supabase.from('languages').insert([{ user_id: user.id, name }]).select();
+    const { data } = await supabase.from('languages').insert([{ user_id: user.id, name }]).select();
     if (data) setLanguages([...languages, data[0]]);
   };
 
@@ -99,7 +98,7 @@ function App() {
   };
 
   const addWord = async (languageId, original, translation) => {
-    const { data, error } = await supabase.from('words').insert([{ 
+    const { data } = await supabase.from('words').insert([{ 
       user_id: user.id, 
       language_id: languageId, 
       original, 
@@ -139,7 +138,7 @@ function App() {
   };
 
   return (
-    <React.Fragment>
+    <>
       <Header 
         currentPage={currentPage} 
         setCurrentPage={setCurrentPage}
