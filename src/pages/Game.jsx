@@ -1,102 +1,99 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 function Game({ languages, words, updateWordStats, isLoading, t }) {
   const [gameActive, setGameActive] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [queue, setQueue] = useState([]);
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
-  const [gameWords, setGameWords] = useState([]);
+  const [stats, setStats] = useState({ correct: 0, total: 0 });
   const [selectedLanguage, setSelectedLanguage] = useState('all');
 
-  // Derived current word - ALWAYS syncs with currentIndex
-  const currentWord = useMemo(() => {
-    if (gameWords.length > 0 && currentIndex < gameWords.length) {
-      return gameWords[currentIndex];
-    }
-    return null;
-  }, [gameWords, currentIndex]);
+  // The current word is ALWAYS the first element of the queue
+  const currentWord = useMemo(() => queue.length > 0 ? queue[0] : null, [queue]);
 
-  const startGame = () => {
+  const initLearningSession = () => {
     let pool = words;
-    
     if (selectedLanguage !== 'all') {
       pool = words.filter(w => String(w.languageId) === String(selectedLanguage));
     }
 
-    if (pool.length < 2) {
-      alert(t.notEnoughWords || "Add at least 2 words to start the game!");
+    if (pool.length === 0) {
+      alert(t.noWordsAvailable || "Add words first!");
       return;
     }
 
-    // SMART SORTING: Hard -> Learning -> New -> Known
-    const priority = { hard: 4, learning: 3, new: 2, known: 1 };
-    const sorted = [...pool].sort((a, b) => {
-      const pA = priority[a.status || 'new'] || 2;
-      const pB = priority[b.status || 'new'] || 2;
+    // PRIORITY LOGIC: 
+    // 1. Words due for review (Hard/Learning)
+    // 2. New words
+    // 3. Known words
+    const sortedPool = [...pool].sort((a, b) => {
+      const priority = { hard: 4, learning: 3, new: 2, known: 1 };
+      const pA = priority[a.status] || 2;
+      const pB = priority[b.status] || 2;
       if (pA !== pB) return pB - pA;
-      return Math.random() - 0.5; // Shuffle within same priority
+      return new Date(a.last_seen || 0) - new Date(b.last_seen || 0);
     });
 
-    setGameWords(sorted);
-    setCurrentIndex(0);
-    setScore({ correct: 0, total: 0 });
-    setGuess('');
-    setResult(null);
+    setQueue(sortedPool);
+    setStats({ correct: 0, total: 0 });
     setGameActive(true);
+    setResult(null);
+    setGuess('');
   };
 
-  const nextWord = () => {
-    if (currentIndex + 1 < gameWords.length) {
-      setCurrentIndex(prev => prev + 1);
-      setGuess('');
-      setResult(null);
-    } else {
-      alert(t.congrats || "Session finished! Great job!");
-      stopGame();
-    }
-  };
-
-  const handleGuess = (e) => {
+  const handleAnswer = (e) => {
     e.preventDefault();
     if (!guess.trim() || !currentWord || result) return;
 
     const isCorrect = guess.toLowerCase().trim() === currentWord.translation.toLowerCase().trim();
     
+    // Update Global State & Supabase
     if (updateWordStats) {
       updateWordStats(currentWord.id, isCorrect);
     }
 
-    setScore(prev => ({
+    setStats(prev => ({
       correct: prev.correct + (isCorrect ? 1 : 0),
       total: prev.total + 1
     }));
 
     if (isCorrect) {
       setResult({ type: 'success', message: t.correct });
-      setTimeout(nextWord, 1500);
+      
+      // Correct answer: Move to next word (remove from current session queue)
+      setTimeout(() => {
+        setQueue(prev => prev.slice(1));
+        setGuess('');
+        setResult(null);
+      }, 1500);
     } else {
       setResult({ 
         type: 'error', 
         message: `${t.incorrect} "${currentWord.translation}".` 
       });
-      
-      // ADAPTIVE REPETITION: Insert this word again 3 positions later
-      const newQueue = [...gameWords];
-      const repeatIdx = Math.min(currentIndex + 4, newQueue.length);
-      newQueue.splice(repeatIdx, 0, currentWord); 
-      setGameWords(newQueue);
+
+      // Incorrect answer: ADAPTIVE REPEAT
+      // Don't remove from queue, just move it a few positions back to repeat later
+      setTimeout(() => {
+        setQueue(prev => {
+          const [failedWord, ...rest] = prev;
+          const reinsertIdx = Math.min(3, rest.length); // Reinsert after 3 words
+          const newQueue = [...rest];
+          newQueue.splice(reinsertIdx, 0, failedWord);
+          return newQueue;
+        });
+        setGuess('');
+        setResult(null);
+      }, 3000);
     }
   };
 
-  const stopGame = () => {
+  const finishSession = () => {
     setGameActive(false);
-    setGameWords([]);
-    setCurrentIndex(0);
-    setResult(null);
+    setQueue([]);
   };
 
-  if (isLoading) return <div className="game-container"><div className="card game-card">{t.processing}...</div></div>;
+  if (isLoading) return <div className="game-container"><div className="card game-card">{t.processing}</div></div>;
 
   return (
     <div className="game-container fade-in">
@@ -107,72 +104,67 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
           
           <div className="form-group" style={{ textAlign: 'left', marginBottom: '30px' }}>
             <label>{t.selectLanguage}</label>
-            <select 
-              value={selectedLanguage} 
-              onChange={(e) => setSelectedLanguage(e.target.value)}
-            >
+            <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)}>
               <option value="all">{t.allLanguages} ({words.length})</option>
-              {languages.map(lang => {
-                const count = words.filter(w => String(w.languageId) === String(lang.id)).length;
-                return (
-                  <option key={lang.id} value={lang.id}>
-                    {lang.name} ({count})
-                  </option>
-                );
-              })}
+              {languages.map(lang => (
+                <option key={lang.id} value={lang.id}>{lang.name}</option>
+              ))}
             </select>
           </div>
 
-          <button className="btn btn-primary" style={{ width: '100%', padding: '15px' }} onClick={startGame}>
+          <button className="btn btn-primary" style={{ width: '100%', padding: '15px' }} onClick={initLearningSession}>
             {t.startGame}
           </button>
         </div>
       ) : (
         <div className="card game-card">
-          <div className="game-stats">
-            <div>{t.score}: <strong>{score.correct} / {score.total}</strong></div>
-            <button className="btn" onClick={stopGame}>{t.endGame}</button>
-          </div>
-
-          <div className="game-stats-row">
-            <div style={{ color: 'var(--text-secondary)' }}>
-              {t.word} {currentIndex + 1} / {gameWords.length}:
+          {queue.length === 0 ? (
+            <div className="session-complete">
+              <h2 style={{ color: 'var(--success)', marginBottom: '20px' }}>{t.congrats}</h2>
+              <p>{t.sessionCompleteDesc || "You've reviewed all words in this queue!"}</p>
+              <button className="btn btn-primary" style={{ marginTop: '20px' }} onClick={finishSession}>{t.back}</button>
             </div>
-            {currentWord?.status && (
-              <span className={`status-badge status-${currentWord.status}`}>
-                {currentWord.status.toUpperCase()}
-              </span>
-            )}
-          </div>
-          <div className="current-word">{currentWord?.original}</div>
-
-          <form onSubmit={handleGuess}>
-            <div className="game-input-group">
-              <input 
-                type="text" 
-                placeholder="..." 
-                value={guess}
-                onChange={(e) => setGuess(e.target.value)}
-                disabled={!!result}
-                autoFocus
-              />
-              <button type="submit" className="btn btn-primary" disabled={!!result || !guess.trim()}>
-                {t.checkAnswer}
-              </button>
-            </div>
-          </form>
-
-          {result && (
-            <div style={{ marginTop: '20px' }}>
-              <div className={`result-message ${result.type === 'success' ? 'result-success' : 'result-error'}`}>
-                {result.message}
+          ) : (
+            <>
+              <div className="game-stats">
+                <div>{t.score}: <strong>{stats.correct} / {stats.total}</strong></div>
+                <div style={{ color: 'var(--text-secondary)' }}>{t.wordsLeft || "Left"}: {queue.length}</div>
+                <button className="btn" onClick={finishSession}>{t.endGame}</button>
               </div>
-              {result.type === 'error' && (
-                <button className="btn btn-primary" style={{ width: '100%', marginTop: '15px' }} onClick={nextWord}>
-                  {t.nextWord}
-                </button>
+
+              <div className="game-stats-row">
+                <div style={{ color: 'var(--text-secondary)' }}>{t.translateToEnglish}</div>
+                {currentWord?.status && (
+                  <span className={`status-badge status-${currentWord.status}`}>
+                    {currentWord.status}
+                  </span>
+                )}
+              </div>
+              
+              <div className="current-word">{currentWord?.original}</div>
+
+              <form onSubmit={handleAnswer}>
+                <div className="game-input-group">
+                  <input 
+                    type="text" 
+                    placeholder="..." 
+                    value={guess}
+                    onChange={(e) => setGuess(e.target.value)}
+                    disabled={!!result}
+                    autoFocus
+                  />
+                  <button type="submit" className="btn btn-primary" disabled={!!result || !guess.trim()}>
+                    {t.checkAnswer}
+                  </button>
+                </div>
+              </form>
+
+              {result && (
+                <div className={`result-message ${result.type === 'success' ? 'result-success' : 'result-error'}`}>
+                  {result.message}
+                </div>
               )}
-            </div>
+            </>
           )}
         </div>
       )}

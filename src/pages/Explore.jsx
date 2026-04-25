@@ -4,8 +4,7 @@ import { supabase } from '../supabaseClient';
 function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
   const [selectedLang, setSelectedLang] = useState('English');
   const [selectedLevel, setSelectedLevel] = useState(null);
-  const [shuffledWords, setShuffledWords] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [queue, setQueue] = useState([]);
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
   const [fetching, setFetching] = useState(false);
@@ -26,19 +25,10 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     ]
   };
 
-  // Reset EVERYTHING only when language changes
-  useEffect(() => {
-    setSelectedLevel(null);
-    setShuffledWords([]);
-    setCurrentIndex(0);
-    setResult(null);
-    setGuess('');
-  }, [selectedLang]);
-
-  // Derived state: currentWord is always calculated from index
+  // Current word is always the first in queue
   const currentWord = useMemo(() => {
-    if (shuffledWords.length > 0 && currentIndex < shuffledWords.length) {
-      const raw = shuffledWords[currentIndex];
+    if (queue.length > 0) {
+      const raw = queue[0];
       let targetLang = uiLanguage;
       if (selectedLang.toLowerCase() === 'english' && uiLanguage === 'en') targetLang = 'ru';
       else if (selectedLang.toLowerCase() === 'german' && uiLanguage === 'de') targetLang = 'en';
@@ -50,7 +40,13 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
       return { ...raw, translation };
     }
     return null;
-  }, [shuffledWords, currentIndex, uiLanguage, selectedLang]);
+  }, [queue, uiLanguage, selectedLang]);
+
+  useEffect(() => {
+    setSelectedLevel(null);
+    setQueue([]);
+    setResult(null);
+  }, [selectedLang]);
 
   const startSession = async (level) => {
     setFetching(true);
@@ -65,9 +61,7 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
       const pool = (data && data.length > 0) ? data : localPool;
 
       if (pool.length > 0) {
-        const shuffled = [...pool].sort(() => Math.random() - 0.5);
-        setShuffledWords(shuffled);
-        setCurrentIndex(0);
+        setQueue([...pool].sort(() => Math.random() - 0.5));
         setSelectedLevel(level);
         setResult(null);
         setGuess('');
@@ -77,23 +71,11 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     } catch (err) {
       const localPool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
       if (localPool.length > 0) {
-        setShuffledWords([...localPool].sort(() => Math.random() - 0.5));
-        setCurrentIndex(0);
+        setQueue([...localPool].sort(() => Math.random() - 0.5));
         setSelectedLevel(level);
       }
     } finally {
       setFetching(false);
-    }
-  };
-
-  const nextWord = () => {
-    if (currentIndex + 1 < shuffledWords.length) {
-      setCurrentIndex(prev => prev + 1);
-      setResult(null);
-      setGuess('');
-    } else {
-      alert(t.congrats || "Session finished!");
-      setSelectedLevel(null);
     }
   };
 
@@ -104,9 +86,23 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     const isCorrect = guess.toLowerCase().trim() === currentWord.translation.toLowerCase().trim();
     if (isCorrect) {
       setResult({ type: 'success', message: t.correct });
-      setTimeout(nextWord, 1500);
+      setTimeout(() => {
+        setQueue(prev => prev.slice(1));
+        setResult(null);
+        setGuess('');
+      }, 1500);
     } else {
       setResult({ type: 'error', message: `${t.incorrect} "${currentWord.translation}"` });
+      // On error in discovery, move it to the end of the current queue to repeat later
+      setTimeout(() => {
+        setQueue(prev => {
+          const [failed, ...rest] = prev;
+          const newQ = [...rest, failed];
+          return newQ;
+        });
+        setResult(null);
+        setGuess('');
+      }, 3000);
     }
   };
 
@@ -114,7 +110,10 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     const lang = languages.find(l => l.name.toLowerCase() === selectedLang.toLowerCase());
     if (lang && currentWord) {
       addWord(lang.id, currentWord.word, currentWord.translation);
-      nextWord();
+      // Remove from current queue after saving
+      setQueue(prev => prev.slice(1));
+      setResult(null);
+      setGuess('');
     } else {
       alert(`Please add ${selectedLang} to your Library first!`);
     }
@@ -159,40 +158,48 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
       </div>
 
       <div className="card game-card">
-        <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>
-          {t.word} {currentIndex + 1} / {shuffledWords.length}:
-        </div>
-        <div className="current-word">{currentWord?.word}</div>
-
-        <form onSubmit={handleCheck}>
-          <div className="game-input-group">
-            <input 
-              type="text" 
-              placeholder="..." 
-              value={guess}
-              onChange={(e) => setGuess(e.target.value)}
-              disabled={!!result}
-              autoFocus
-            />
-            {!result ? (
-              <button type="submit" className="btn btn-primary" disabled={!guess.trim()}>{t.checkAnswer}</button>
-            ) : (
-              <button type="button" className="btn" onClick={nextWord}>{t.nextWord}</button>
-            )}
+        {queue.length === 0 ? (
+          <div className="session-complete">
+            <h2 style={{ color: 'var(--success)', marginBottom: '20px' }}>{t.congrats}</h2>
+            <p>{t.exploreCompleteDesc || "You've discovered all words for this level!"}</p>
+            <button className="btn btn-primary" onClick={() => setSelectedLevel(null)}>{t.back}</button>
           </div>
-        </form>
-
-        {result && (
-          <div style={{ marginTop: '20px' }}>
-            <div className={`result-message ${result.type === 'success' ? 'result-success' : 'result-error'}`}>
-              {result.message}
+        ) : (
+          <>
+            <div style={{ color: 'var(--text-secondary)', marginBottom: '15px' }}>
+              {t.wordsLeft || "Remaining"}: {queue.length}
             </div>
-            {result.type === 'error' && (
-              <button className="btn btn-primary" style={{ width: '100%', marginTop: '15px' }} onClick={saveToStudy}>
-                ⭐ {t.saveForLater}
-              </button>
+            <div className="current-word">{currentWord?.word}</div>
+
+            <form onSubmit={handleCheck}>
+              <div className="game-input-group">
+                <input 
+                  type="text" 
+                  placeholder="..." 
+                  value={guess}
+                  onChange={(e) => setGuess(e.target.value)}
+                  disabled={!!result}
+                  autoFocus
+                />
+                {!result && (
+                  <button type="submit" className="btn btn-primary" disabled={!guess.trim()}>{t.checkAnswer}</button>
+                )}
+              </div>
+            </form>
+
+            {result && (
+              <div style={{ marginTop: '20px' }}>
+                <div className={`result-message ${result.type === 'success' ? 'result-success' : 'result-error'}`}>
+                  {result.message}
+                </div>
+                {result.type === 'error' && (
+                  <button className="btn btn-primary" style={{ width: '100%', marginTop: '15px' }} onClick={saveToStudy}>
+                    ⭐ {t.saveForLater}
+                  </button>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>
