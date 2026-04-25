@@ -86,16 +86,16 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
           </h1>
 
           <div className="auth-buttons">
-            <div className="lang-switcher">
-              {['en', 'ru', 'uz'].map(lang => (
-                <button 
-                  key={lang}
-                  className={`lang-btn ${uiLanguage === lang ? 'active' : ''}`}
-                  onClick={() => changeLanguage(lang)}
-                >
-                  {lang.toUpperCase()}
-                </button>
-              ))}
+            <div className="lang-dropdown">
+              <select 
+                value={uiLanguage} 
+                onChange={(e) => changeLanguage(e.target.value)}
+                className="lang-select"
+              >
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="uz">O'zbek</option>
+              </select>
             </div>
 
             {!user ? (
