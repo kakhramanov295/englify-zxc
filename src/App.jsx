@@ -166,6 +166,14 @@ function App() {
           </section>
         ) : (
           <div className="fade-in">
+            {user && (
+              <div className="sub-nav">
+                <button className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} onClick={() => setCurrentPage('dashboard')}>{t.dashboard}</button>
+                <button className={currentPage === 'game' ? 'active' : ''} onClick={() => setCurrentPage('game')}>{t.gameMode}</button>
+                <button className={currentPage === 'discover' ? 'active' : ''} onClick={() => setCurrentPage('discover')}>{t.discover}</button>
+              </div>
+            )}
+
             {currentPage === 'dashboard' && (
               <Dashboard 
                 languages={languages} 

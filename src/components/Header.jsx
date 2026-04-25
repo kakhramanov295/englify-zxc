@@ -84,14 +84,6 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
               <text x="42" y="17" fill="white" dominantBaseline="central" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '22px', letterSpacing: '-0.5px' }}>Lingvo</text>
             </svg>
           </h1>
-          
-          {user && (
-            <nav className="nav-links">
-              <button className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} onClick={() => setCurrentPage('dashboard')}>{t.dashboard}</button>
-              <button className={currentPage === 'game' ? 'active' : ''} onClick={() => setCurrentPage('game')}>{t.gameMode}</button>
-              <button className={currentPage === 'discover' ? 'active' : ''} onClick={() => setCurrentPage('discover')}>{t.discover}</button>
-            </nav>
-          )}
 
           <div className="auth-buttons">
             <div className="lang-switcher">

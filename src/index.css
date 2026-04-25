@@ -140,6 +140,45 @@ body {
   box-shadow: 0 4px 12px var(--accent-glow);
 }
 
+/* Sub Navigation */
+.sub-nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 40px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sub-nav button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  padding: 10px 24px;
+  border-radius: 12px;
+}
+
+.sub-nav button:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sub-nav button.active {
+  color: var(--text-main);
+  background: var(--card-bg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border);
+}
+
 .logout-icon-btn {
   background: none;
   border: none;

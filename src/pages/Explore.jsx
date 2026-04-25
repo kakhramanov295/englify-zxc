@@ -10,23 +10,50 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
   const [sessionWords, setSessionWords] = useState([]);
   const [fetching, setFetching] = useState(false);
 
+  const fallbackWords = {
+    'A1-A2': [
+      { word: "Family", translation_en: "Family", translation_ru: "Семья", translation_uz: "Oila" },
+      { word: "Apple", translation_en: "Apple", translation_ru: "Яблоко", translation_uz: "Olma" },
+      { word: "House", translation_en: "House", translation_ru: "Дом", translation_uz: "Uy" }
+    ],
+    'B1-B2': [
+      { word: "Success", translation_en: "Success", translation_ru: "Успех", translation_uz: "Muvaffaqiyat" },
+      { word: "Knowledge", translation_en: "Knowledge", translation_ru: "Знание", translation_uz: "Bilim" }
+    ],
+    'C1-C2': [
+      { word: "Complexity", translation_en: "Complexity", translation_ru: "Сложность", translation_uz: "Murakkablik" },
+      { word: "Significance", translation_en: "Significance", translation_ru: "Значимость", translation_uz: "Ahamiyat" }
+    ]
+  };
+
   const startSession = async (level) => {
     setFetching(true);
-    // Fetch from Supabase global_words
-    const { data, error } = await supabase
-      .from('global_words')
-      .select('*')
-      .eq('language', selectedLang)
-      .eq('level', level);
+    try {
+      const { data, error } = await supabase
+        .from('global_words')
+        .select('*')
+        .eq('language', selectedLang)
+        .eq('level', level);
 
-    if (data && data.length > 0) {
+      if (data && data.length > 0) {
+        setSessionWords(data);
+        pickRandomWord(data);
+        setSelectedLevel(level);
+      } else {
+        // Fallback scenario
+        const fallback = fallbackWords[level] || [];
+        setSessionWords(fallback);
+        pickRandomWord(fallback);
+        setSelectedLevel(level);
+      }
+    } catch (err) {
+      const fallback = fallbackWords[level] || [];
+      setSessionWords(fallback);
+      pickRandomWord(fallback);
       setSelectedLevel(level);
-      setSessionWords(data);
-      pickRandomWord(data);
-    } else {
-      alert("No words found in database for this level yet!");
+    } finally {
+      setFetching(false);
     }
-    setFetching(false);
   };
 
   const pickRandomWord = (pool) => {
