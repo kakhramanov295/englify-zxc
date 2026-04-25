@@ -76,8 +76,11 @@ function Header({ currentPage, setCurrentPage, user }) {
   return (
     <>
       <header className="header">
-        <h1 onClick={() => setCurrentPage('dashboard')}>
-          <span>LM</span> Language Master
+        <h1 className="logo" onClick={() => setCurrentPage('dashboard')}>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="7" cy="14" r="3.5" fill="#2563eb"/>
+            <rect x="14" y="6" width="8" height="20" rx="4" transform="rotate(-25 14 6)" fill="#2563eb"/>
+          </svg>
         </h1>
         
         <nav className="nav-links">
