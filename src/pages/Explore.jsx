@@ -48,31 +48,46 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     setResult(null);
   }, [selectedLang]);
 
-  const startSession = async (level) => {
+  const startSession = async (levelRange) => {
     setFetching(true);
+    
+    // Normalize level: "A1-A2" -> ["A1", "A2"]
+    const levels = levelRange.split('-');
+    console.log("LEVEL RANGE SELECTED:", levelRange);
+    console.log("NORMALIZED LEVELS:", levels);
+
     try {
+      // Query Supabase for ANY level in the range
       const { data } = await supabase
         .from('global_words')
         .select('*')
         .eq('language', selectedLang)
-        .eq('level', level);
+        .in('level', levels);
 
-      const localPool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
+      console.log("DB RAW DATA:", data);
+
+      // Filter fallbacks correctly
+      const localPool = (fallbackWords[levelRange] || []).filter(w => w.language === selectedLang);
       const pool = (data && data.length > 0) ? data : localPool;
 
-      if (pool.length > 0) {
+      console.log("FINAL WORD POOL:", pool);
+
+      if (pool && pool.length >= 2) {
         setQueue([...pool].sort(() => Math.random() - 0.5));
-        setSelectedLevel(level);
+        setSelectedLevel(levelRange);
         setResult(null);
         setGuess('');
       } else {
-        alert(`No words available for ${selectedLang} at this level.`);
+        alert(t.noWordsAvailable || "Not enough words available for this level yet.");
       }
     } catch (err) {
-      const localPool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
-      if (localPool.length > 0) {
+      console.error("COURSE ERROR:", err);
+      const localPool = (fallbackWords[levelRange] || []).filter(w => w.language === selectedLang);
+      if (localPool.length >= 2) {
         setQueue([...localPool].sort(() => Math.random() - 0.5));
-        setSelectedLevel(level);
+        setSelectedLevel(levelRange);
+      } else {
+        alert("Error loading words.");
       }
     } finally {
       setFetching(false);
