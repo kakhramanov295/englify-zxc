@@ -140,23 +140,61 @@ body {
   box-shadow: 0 4px 12px var(--accent-glow);
 }
 
+.logout-icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: var(--transition);
+  margin-left: 8px;
+}
+
+.logout-icon-btn:hover {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.auth-error-box {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  padding: 15px 20px;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 24px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auth-error-box button {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 1024px) {
-  .header {
-    flex-wrap: wrap;
-    gap: 15px;
-    padding: 15px 0;
-  }
-  
-  .header h1.logo {
-    order: 1;
-  }
-  
-  .auth-buttons {
-    order: 2;
+  .header .container {
+    flex-direction: column;
+    gap: 20px;
   }
   
   .nav-links {
-    order: 3;
     width: 100%;
     justify-content: center;
   }

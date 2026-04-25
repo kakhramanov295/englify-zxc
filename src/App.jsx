@@ -11,80 +11,72 @@ import './index.css';
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [activeLanguageId, setActiveLanguageId] = useState(null);
-  const [uiLanguage, setUiLanguage] = useState(localStorage.getItem('uiLanguage') || 'en');
-  
-  const t = translations[uiLanguage];
-
-  const changeLanguage = (lang) => {
-    setUiLanguage(lang);
-    localStorage.setItem('uiLanguage', lang);
-  };
-  
-  // Real auth state
+  const [uiLanguage, setUiLanguage] = useState('en');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [languages, setLanguages] = useState([]);
+  const [words, setWords] = useState([]);
+  
+  const t = translations[uiLanguage];
 
+  // Auth & Settings Listener
   useEffect(() => {
-    // Handle OAuth errors returned in the URL hash
-    if (window.location.hash && window.location.hash.includes('error=')) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const errorDesc = hashParams.get('error_description') || hashParams.get('error');
-      if (errorDesc) {
-        setAuthError(decodeURIComponent(errorDesc.replace(/\+/g, ' ')));
-        // Clean up URL
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
-      if (!session?.user) setLoading(false);
+      if (session?.user) fetchUserSettings(session.user.id);
+      else setLoading(false);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
-      if (!session?.user) setLoading(false);
+      if (session?.user) fetchUserSettings(session.user.id);
+      else {
+        setLoading(false);
+        setLanguages([]);
+        setWords([]);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Data state
-  const [languages, setLanguages] = useState([]);
-  const [words, setWords] = useState([]);
+  const fetchUserSettings = async (userId) => {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
 
-  useEffect(() => {
-    if (!user) {
-      setLanguages([]);
-      setWords([]);
-      return;
+    if (data) {
+      setUiLanguage(data.ui_language);
+    } else if (error && error.code === 'PGRST116') {
+      // If settings don't exist, create default
+      await supabase.from('user_settings').insert([{ user_id: userId, ui_language: 'en' }]);
     }
+  };
+
+  const changeLanguage = async (lang) => {
+    setUiLanguage(lang);
+    if (user) {
+      await supabase.from('user_settings').upsert({ user_id: user.id, ui_language: lang });
+    }
+  };
+
+  // Data Fetching
+  useEffect(() => {
+    if (!user) return;
 
     const fetchData = async () => {
       setLoading(true);
-      // Fetch languages
-      const { data: langsData, error: langsError } = await supabase
-        .from('languages')
-        .select('*')
-        .order('created_at', { ascending: true });
-        
-      if (!langsError && langsData) {
-        setLanguages(langsData);
-      }
+      const [langsRes, wordsRes] = await Promise.all([
+        supabase.from('languages').select('*').order('created_at'),
+        supabase.from('words').select('*').order('created_at')
+      ]);
 
-      // Fetch words
-      const { data: wordsData, error: wordsError } = await supabase
-        .from('words')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (!wordsError && wordsData) {
-        setWords(wordsData.map(w => ({
-          ...w,
-          languageId: w.language_id
-        })));
+      if (langsRes.data) setLanguages(langsRes.data);
+      if (wordsRes.data) {
+        setWords(wordsRes.data.map(w => ({ ...w, languageId: w.language_id })));
       }
       setLoading(false);
     };
@@ -93,67 +85,51 @@ function App() {
   }, [user]);
 
   const addLanguage = async (name) => {
-    if (!user) return alert("Please login first to save languages!");
-    
-    const newLang = { user_id: user.id, name };
-    const { data, error } = await supabase
-      .from('languages')
-      .insert([newLang])
-      .select();
-
-    if (!error && data) {
-      setLanguages([...languages, data[0]]);
-    } else if (error) {
-      alert("Error adding language: " + error.message);
-    }
+    const { data, error } = await supabase.from('languages').insert([{ user_id: user.id, name }]).select();
+    if (data) setLanguages([...languages, data[0]]);
   };
 
   const deleteLanguage = async (id) => {
-    if (!user) return;
-    
-    const { error } = await supabase
-      .from('languages')
-      .delete()
-      .eq('id', id);
-
+    const { error } = await supabase.from('languages').delete().eq('id', id);
     if (!error) {
       setLanguages(languages.filter(l => l.id !== id));
       setWords(words.filter(w => w.languageId !== id));
-      if (activeLanguageId === id) {
-        setActiveLanguageId(null);
-        setCurrentPage('dashboard');
-      }
     }
   };
 
   const addWord = async (languageId, original, translation) => {
-    if (!user) return alert("Please login first to save words!");
-
-    const newWord = { user_id: user.id, language_id: languageId, original, translation };
-    const { data, error } = await supabase
-      .from('words')
-      .insert([newWord])
-      .select();
-
-    if (!error && data) {
+    const { data, error } = await supabase.from('words').insert([{ 
+      user_id: user.id, 
+      language_id: languageId, 
+      original, 
+      translation,
+      status: 'new'
+    }]).select();
+    if (data) {
       const added = data[0];
       setWords([...words, { ...added, languageId: added.language_id }]);
-    } else if (error) {
-      alert("Error adding word: " + error.message);
+    }
+  };
+
+  const updateWordStats = async (wordId, isCorrect) => {
+    const word = words.find(w => w.id === wordId);
+    if (!word) return;
+
+    const updates = {
+      correct_count: isCorrect ? (word.correct_count || 0) + 1 : (word.correct_count || 0),
+      incorrect_count: !isCorrect ? (word.incorrect_count || 0) + 1 : (word.incorrect_count || 0),
+      status: isCorrect ? 'known' : 'learning'
+    };
+
+    const { error } = await supabase.from('words').update(updates).eq('id', wordId);
+    if (!error) {
+      setWords(words.map(w => w.id === wordId ? { ...w, ...updates } : w));
     }
   };
 
   const deleteWord = async (id) => {
-    if (!user) return;
-    
-    const { error } = await supabase
-      .from('words')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
-      setWords(words.filter(w => w.id !== id));
-    }
+    const { error } = await supabase.from('words').delete().eq('id', id);
+    if (!error) setWords(words.filter(w => w.id !== id));
   };
 
   const navigateToVocab = (langId) => {
@@ -174,9 +150,9 @@ function App() {
       
       <main>
         {authError && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+          <div className="auth-error-box">
             <strong>Auth Error:</strong> {authError}
-            <button onClick={() => setAuthError(null)} style={{ float: 'right', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>✖</button>
+            <button onClick={() => setAuthError(null)}>✖</button>
           </div>
         )}
 
@@ -184,12 +160,12 @@ function App() {
           <section className="hero-section">
             <h1>{t.heroTitle}</h1>
             <p>{t.heroDesc}</p>
-            <button className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.1rem' }} onClick={() => document.querySelector('.btn-primary').click()}>
+            <button className="btn btn-primary btn-large" onClick={() => document.querySelector('.btn-primary').click()}>
               {t.getStarted}
             </button>
           </section>
         ) : (
-          <>
+          <div className="fade-in">
             {currentPage === 'dashboard' && (
               <Dashboard 
                 languages={languages} 
@@ -218,6 +194,7 @@ function App() {
               <Game 
                 languages={languages}
                 words={words}
+                updateWordStats={updateWordStats}
                 isLoading={loading}
                 t={t}
               />
@@ -228,10 +205,11 @@ function App() {
                 languages={languages}
                 addWord={addWord}
                 t={t}
+                uiLanguage={uiLanguage}
                 isLoading={loading}
               />
             )}
-          </>
+          </div>
         )}
       </main>
     </div>

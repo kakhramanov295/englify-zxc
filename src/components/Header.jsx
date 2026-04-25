@@ -76,73 +76,51 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
   return (
     <>
       <header className="header">
-        <h1 className="logo" onClick={() => setCurrentPage('dashboard')}>
-          <svg width="124" height="32" viewBox="0 0 124 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="7" cy="16" r="4" fill="#2563eb"/>
-            <rect x="14" y="6" width="8" height="20" rx="4" transform="rotate(-25 14 6)" fill="#2563eb"/>
-            <text x="42" y="17" fill="white" dominantBaseline="central" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '22px', letterSpacing: '-0.5px' }}>Lingvo</text>
-          </svg>
-        </h1>
-        
-        <nav className="nav-links">
-          <button 
-            className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} 
-            onClick={() => setCurrentPage('dashboard')}
-          >
-            {t.dashboard}
-          </button>
-          <button 
-            className={currentPage === 'game' ? 'active' : ''} 
-            onClick={() => setCurrentPage('game')}
-          >
-            {t.gameMode}
-          </button>
-          <button 
-            className={currentPage === 'discover' ? 'active' : ''} 
-            onClick={() => setCurrentPage('discover')}
-          >
-            {t.discover}
-          </button>
-        </nav>
-
-        <div className="auth-buttons">
-          <div className="lang-switcher">
-            <button 
-              className={`lang-btn ${uiLanguage === 'en' ? 'active' : ''}`}
-              onClick={() => changeLanguage('en')}
-            >
-              EN
-            </button>
-            <button 
-              className={`lang-btn ${uiLanguage === 'ru' ? 'active' : ''}`}
-              onClick={() => changeLanguage('ru')}
-            >
-              RU
-            </button>
-            <button 
-              className={`lang-btn ${uiLanguage === 'uz' ? 'active' : ''}`}
-              onClick={() => changeLanguage('uz')}
-            >
-              UZ
-            </button>
-          </div>
-
-          {!user ? (
-            <>
-              <button className="btn" onClick={() => openModal('login')}>{t.login}</button>
-              <button className="btn btn-primary" onClick={() => openModal('register')}>{t.register}</button>
-            </>
-          ) : (
-            <div className="user-profile">
-              <img 
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=2563eb&color=fff&rounded=true&size=36`} 
-                alt="Profile" 
-                className="profile-avatar"
-              />
-              <span className="profile-name">{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
-              <button className="btn btn-danger" onClick={handleLogout} style={{ marginLeft: '10px', padding: '8px 16px', fontSize: '0.85rem' }}>{t.logout}</button>
-            </div>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <h1 className="logo" onClick={() => setCurrentPage('dashboard')}>
+            <svg width="124" height="32" viewBox="0 0 124 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="7" cy="16" r="4" fill="#2563eb"/>
+              <rect x="14" y="6" width="8" height="20" rx="4" transform="rotate(-25 14 6)" fill="#2563eb"/>
+              <text x="42" y="17" fill="white" dominantBaseline="central" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '22px', letterSpacing: '-0.5px' }}>Lingvo</text>
+            </svg>
+          </h1>
+          
+          {user && (
+            <nav className="nav-links">
+              <button className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} onClick={() => setCurrentPage('dashboard')}>{t.dashboard}</button>
+              <button className={currentPage === 'game' ? 'active' : ''} onClick={() => setCurrentPage('game')}>{t.gameMode}</button>
+              <button className={currentPage === 'discover' ? 'active' : ''} onClick={() => setCurrentPage('discover')}>{t.discover}</button>
+            </nav>
           )}
+
+          <div className="auth-buttons">
+            <div className="lang-switcher">
+              {['en', 'ru', 'uz'].map(lang => (
+                <button 
+                  key={lang}
+                  className={`lang-btn ${uiLanguage === lang ? 'active' : ''}`}
+                  onClick={() => changeLanguage(lang)}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            {!user ? (
+              <button className="btn btn-primary" onClick={() => openModal('login')}>{t.login}</button>
+            ) : (
+              <div className="user-profile">
+                <img 
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=2563eb&color=fff&rounded=true&size=32`} 
+                  alt="Profile" 
+                  className="profile-avatar"
+                />
+                <button className="logout-icon-btn" onClick={handleLogout} title={t.logout}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
