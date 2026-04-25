@@ -36,8 +36,8 @@ body {
 /* App Container */
 .app-container {
   max-width: 1200px;
-  margin: 80px auto 0;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 100px 20px 40px; /* Top padding for fixed header */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -53,11 +53,13 @@ body {
 .header {
   width: 100%;
   border-bottom: 1px solid var(--card-border);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   background: #050505;
   backdrop-filter: blur(12px);
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .header-content {

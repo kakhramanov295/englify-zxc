@@ -12,17 +12,17 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
 
   const fallbackWords = {
     'A1-A2': [
-      { word: "Family", translation_en: "Family", translation_ru: "Семья", translation_uz: "Oila" },
-      { word: "Apple", translation_en: "Apple", translation_ru: "Яблоко", translation_uz: "Olma" },
-      { word: "House", translation_en: "House", translation_ru: "Дом", translation_uz: "Uy" }
+      { word: "Family", translation_en: "Family", translation_ru: "Семья", translation_uz: "Oila", language: "English" },
+      { word: "Haus", translation_en: "House", translation_ru: "Дом", translation_uz: "Uy", language: "German" },
+      { word: "Amigo", translation_en: "Friend", translation_ru: "Друг", translation_uz: "Do'st", language: "Spanish" }
     ],
     'B1-B2': [
-      { word: "Success", translation_en: "Success", translation_ru: "Успех", translation_uz: "Muvaffaqiyat" },
-      { word: "Knowledge", translation_en: "Knowledge", translation_ru: "Знание", translation_uz: "Bilim" }
+      { word: "Environment", translation_en: "Environment", translation_ru: "Окружающая среда", translation_uz: "Atrof-muhit", language: "English" },
+      { word: "Erfahrung", translation_en: "Experience", translation_ru: "Опыт", translation_uz: "Tajriba", language: "German" }
     ],
     'C1-C2': [
-      { word: "Complexity", translation_en: "Complexity", translation_ru: "Сложность", translation_uz: "Murakkablik" },
-      { word: "Significance", translation_en: "Significance", translation_ru: "Значимость", translation_uz: "Ahamiyat" }
+      { word: "Phenomenon", translation_en: "Phenomenon", translation_ru: "Феномен", translation_uz: "Fenomen", language: "English" },
+      { word: "Herausforderung", translation_en: "Challenge", translation_ru: "Вызов", translation_uz: "Qiyinchilik", language: "German" }
     ]
   };
 
@@ -35,24 +35,24 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
         .eq('language', selectedLang)
         .eq('level', level);
 
-      if (data && data.length > 0) {
-        setSessionWords(data);
-        pickRandomWord(data);
+      // Filter fallbacks by language if Supabase is empty
+      const localPool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
+      const pool = (data && data.length > 0) ? data : localPool;
+
+      if (pool.length > 0) {
+        setSessionWords(pool);
+        pickRandomWord(pool);
         setSelectedLevel(level);
       } else {
-        // Fallback scenario
-        const fallback = fallbackWords[level] || [];
-        setSessionWords(fallback);
-        pickRandomWord(fallback);
-      const pool = (data && data.length > 0) ? data : (fallbackWords[level] || []);
-      setSessionWords(pool);
-      pickRandomWord(pool);
-      setSelectedLevel(level);
+        alert(`No words available for ${selectedLang} at this level.`);
+      }
     } catch (err) {
-      const fallback = fallbackWords[level] || [];
-      setSessionWords(fallback);
-      pickRandomWord(fallback);
-      setSelectedLevel(level);
+      const pool = (fallbackWords[level] || []).filter(w => w.language === selectedLang);
+      if (pool.length > 0) {
+        setSessionWords(pool);
+        pickRandomWord(pool);
+        setSelectedLevel(level);
+      }
     } finally {
       setFetching(false);
     }
