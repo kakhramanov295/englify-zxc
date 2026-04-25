@@ -3,7 +3,7 @@ import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Vocabulary from './pages/Vocabulary';
 import Game from './pages/Game';
-import Templates from './pages/Templates';
+import Explore from './pages/Explore';
 import { supabase } from './supabaseClient';
 import { translations } from './translations';
 import './index.css';
@@ -223,12 +223,12 @@ function App() {
               />
             )}
 
-            {currentPage === 'templates' && (
-              <Templates 
+            {currentPage === 'discover' && (
+              <Explore 
                 languages={languages}
                 addWord={addWord}
-                isLoading={loading}
                 t={t}
+                isLoading={loading}
               />
             )}
           </>

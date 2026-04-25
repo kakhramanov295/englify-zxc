@@ -98,10 +98,10 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
             {t.gameMode}
           </button>
           <button 
-            className={currentPage === 'templates' ? 'active' : ''} 
-            onClick={() => setCurrentPage('templates')}
+            className={currentPage === 'discover' ? 'active' : ''} 
+            onClick={() => setCurrentPage('discover')}
           >
-            {t.library}
+            {t.discover}
           </button>
         </nav>
 
