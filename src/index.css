@@ -97,7 +97,16 @@ body {
 @media (max-width: 1024px) {
   .header {
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 15px;
+  }
+  
+  .header h1 {
+    order: 1;
+    flex: 1;
+  }
+  
+  .auth-buttons {
+    order: 2;
   }
   
   .nav-links {
@@ -106,27 +115,48 @@ body {
     justify-content: center;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding-top: 15px;
-    margin-top: -5px;
   }
 }
 
 @media (max-width: 480px) {
   .header {
     margin-bottom: 20px;
+    padding: 15px 0;
   }
   
   .header h1 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    gap: 6px;
+  }
+  
+  .header h1 span {
+    padding: 4px 6px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+
+  .nav-links {
+    gap: 5px;
   }
   
   .nav-links button {
-    padding: 6px 10px;
-    font-size: 0.85rem;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .auth-buttons {
+    gap: 6px;
   }
   
   .auth-buttons .btn {
-    padding: 8px 12px;
-    font-size: 0.8rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .profile-name {
+    display: none; /* Hide name on very small screens to save space */
   }
 }
 
