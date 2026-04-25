@@ -2,6 +2,7 @@ export const translations = {
   en: {
     dashboard: "Dashboard",
     gameMode: "Game Mode",
+    library: "Library",
     login: "Login",
     register: "Register",
     logout: "Logout",
@@ -47,11 +48,21 @@ export const translations = {
     processing: "Processing...",
     heroTitle: "Master Any Language with Lingvo",
     heroDesc: "The smartest way to build your personal vocabulary. Save words, practice with games, and track your progress across any language.",
-    getStarted: "Get Started for Free"
+    getStarted: "Get Started for Free",
+    levelA: "Beginner (A1-A2)",
+    levelB: "Intermediate (B1-B2)",
+    levelC: "Advanced (C1-C2)",
+    libraryTitle: "Word Library",
+    libraryDesc: "Check your level and add new words to your study list.",
+    selectLevel: "Select Proficiency Level",
+    targetLangLabel: "I am learning...",
+    addToStudy: "Add to Study List",
+    wordAdded: "Added!"
   },
   ru: {
     dashboard: "Главная",
     gameMode: "Режим игры",
+    library: "Библиотека",
     login: "Войти",
     register: "Регистрация",
     logout: "Выйти",
@@ -97,11 +108,21 @@ export const translations = {
     processing: "Загрузка...",
     heroTitle: "Освойте любой язык с Lingvo",
     heroDesc: "Умный способ пополнения вашего словарного запаса. Сохраняйте слова, практикуйтесь в играх и отслеживайте прогресс.",
-    getStarted: "Начать бесплатно"
+    getStarted: "Начать бесплатно",
+    levelA: "Новичок (A1-A2)",
+    levelB: "Средний (B1-B2)",
+    levelC: "Продвинутый (C1-C2)",
+    libraryTitle: "Библиотека слов",
+    libraryDesc: "Проверьте свой уровень и добавьте новые слова в список изучения.",
+    selectLevel: "Выберите уровень владения",
+    targetLangLabel: "Я учу...",
+    addToStudy: "В словарь",
+    wordAdded: "Добавлено!"
   },
   uz: {
     dashboard: "Asosiy",
     gameMode: "O'yin rejimi",
+    library: "Kutubxona",
     login: "Kirish",
     register: "Ro'yxatdan o'tish",
     logout: "Chiqish",
@@ -147,6 +168,15 @@ export const translations = {
     processing: "Yuklanmoqda...",
     heroTitle: "Lingvo bilan istalgan tilni o'rganing",
     heroDesc: "Shaxsiy lug'at boyligingizni oshirishning eng aqlli usuli. So'zlarni saqlang, o'yinlar bilan mashq qiling va natijalarni kuzatib boring.",
-    getStarted: "Bepul boshlash"
+    getStarted: "Bepul boshlash",
+    levelA: "Boshlang'ich (A1-A2)",
+    levelB: "O'rta (B1-B2)",
+    levelC: "Yuqori (C1-C2)",
+    libraryTitle: "So'zlar kutubxonasi",
+    libraryDesc: "Darajangizni tekshiring va yangi so'zlarni o'rganish ro'yxatiga qo'shing.",
+    selectLevel: "Darajani tanlang",
+    targetLangLabel: "Men o'rganyapman...",
+    addToStudy: "Lug'atga qo'shish",
+    wordAdded: "Qo'shildi!"
   }
 };

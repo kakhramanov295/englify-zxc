@@ -3,6 +3,7 @@ import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Vocabulary from './pages/Vocabulary';
 import Game from './pages/Game';
+import Templates from './pages/Templates';
 import { supabase } from './supabaseClient';
 import { translations } from './translations';
 import './index.css';
@@ -217,6 +218,15 @@ function App() {
               <Game 
                 languages={languages}
                 words={words}
+                isLoading={loading}
+                t={t}
+              />
+            )}
+
+            {currentPage === 'templates' && (
+              <Templates 
+                languages={languages}
+                addWord={addWord}
                 isLoading={loading}
                 t={t}
               />

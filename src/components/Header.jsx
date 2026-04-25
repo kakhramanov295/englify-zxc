@@ -97,6 +97,12 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
           >
             {t.gameMode}
           </button>
+          <button 
+            className={currentPage === 'templates' ? 'active' : ''} 
+            onClick={() => setCurrentPage('templates')}
+          >
+            {t.library}
+          </button>
         </nav>
 
         <div className="auth-buttons">
