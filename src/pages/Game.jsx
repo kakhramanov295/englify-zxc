@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 function Game({ languages, words, updateWordStats, isLoading, t }) {
   const [gameActive, setGameActive] = useState(false);
-  const [currentWord, setCurrentWord] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [guess, setGuess] = useState('');
-  const [result, setResult] = useState(null); // 'success', 'error'
+  const [result, setResult] = useState(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [gameWords, setGameWords] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState('all');
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // Derived state: currentWord is always tied to currentIndex
+  const currentWord = useMemo(() => {
+    if (gameWords.length > 0 && currentIndex < gameWords.length) {
+      return gameWords[currentIndex];
+    }
+    return null;
+  }, [gameWords, currentIndex]);
 
   const startGame = () => {
     let pool = words;
@@ -23,7 +29,6 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
     setGameWords(shuffled);
     setCurrentIndex(0);
-    setCurrentWord(shuffled[0]);
     setScore({ correct: 0, total: 0 });
     setGameActive(true);
     setResult(null);
@@ -31,12 +36,10 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
   };
 
   const nextWord = () => {
-    const nextIdx = currentIndex + 1;
-    if (nextIdx < gameWords.length) {
-      setCurrentIndex(nextIdx);
-      setCurrentWord(gameWords[nextIdx]);
-      setGuess('');
+    if (currentIndex + 1 < gameWords.length) {
+      setCurrentIndex(prev => prev + 1);
       setResult(null);
+      setGuess('');
     } else {
       alert(t.congrats || "Game finished!");
       stopGame();
@@ -72,7 +75,8 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
 
   const stopGame = () => {
     setGameActive(false);
-    setCurrentWord(null);
+    setCurrentIndex(0);
+    setGameWords([]);
   };
 
   if (isLoading) {
@@ -132,10 +136,6 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
             className="btn btn-primary" 
             style={{ width: '100%', fontSize: '1.2rem', padding: '15px' }}
             onClick={startGame}
-            disabled={
-              (selectedLanguage === 'all' && words.length === 0) || 
-              (selectedLanguage !== 'all' && words.filter(w => w.languageId === selectedLanguage).length === 0)
-            }
           >
             {t.startGame}
           </button>
@@ -148,7 +148,7 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
           </div>
 
           <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>
-            {t.translateToEnglish}
+            {t.word} {currentIndex + 1} / {gameWords.length}:
           </div>
           <div className="current-word">
             {currentWord?.original}

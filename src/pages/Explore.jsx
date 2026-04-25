@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 
 function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
@@ -6,7 +6,6 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [shuffledWords, setShuffledWords] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentWord, setCurrentWord] = useState(null);
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
   const [fetching, setFetching] = useState(false);
@@ -27,42 +26,36 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     ]
   };
 
-  // Deep reset on language change
+  // Reset EVERYTHING only when language changes
   useEffect(() => {
     setSelectedLevel(null);
     setShuffledWords([]);
     setCurrentIndex(0);
-    setCurrentWord(null);
     setResult(null);
+    setGuess('');
   }, [selectedLang]);
 
-  // Update currentWord when index or list changes
-  useEffect(() => {
+  // Derived state: currentWord is always calculated from index
+  const currentWord = useMemo(() => {
     if (shuffledWords.length > 0 && currentIndex < shuffledWords.length) {
-      const rawWord = shuffledWords[currentIndex];
-      
+      const raw = shuffledWords[currentIndex];
       let targetLang = uiLanguage;
       if (selectedLang.toLowerCase() === 'english' && uiLanguage === 'en') targetLang = 'ru';
       else if (selectedLang.toLowerCase() === 'german' && uiLanguage === 'de') targetLang = 'en';
 
-      const translation = targetLang === 'ru' ? rawWord.translation_ru : 
-                          targetLang === 'uz' ? rawWord.translation_uz : 
-                          rawWord.translation_en;
+      const translation = targetLang === 'ru' ? raw.translation_ru : 
+                          targetLang === 'uz' ? raw.translation_uz : 
+                          raw.translation_en;
 
-      setCurrentWord({ ...rawWord, translation });
-      setGuess('');
-      setResult(null);
-    } else if (shuffledWords.length > 0 && currentIndex >= shuffledWords.length) {
-      // Session finished
-      alert(t.congrats || "Session finished!");
-      setSelectedLevel(null);
+      return { ...raw, translation };
     }
-  }, [currentIndex, shuffledWords, uiLanguage]);
+    return null;
+  }, [shuffledWords, currentIndex, uiLanguage, selectedLang]);
 
   const startSession = async (level) => {
     setFetching(true);
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('global_words')
         .select('*')
         .eq('language', selectedLang)
@@ -76,6 +69,8 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
         setShuffledWords(shuffled);
         setCurrentIndex(0);
         setSelectedLevel(level);
+        setResult(null);
+        setGuess('');
       } else {
         alert(`No words available for ${selectedLang} at this level.`);
       }
@@ -92,7 +87,14 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
   };
 
   const nextWord = () => {
-    setCurrentIndex(prev => prev + 1);
+    if (currentIndex + 1 < shuffledWords.length) {
+      setCurrentIndex(prev => prev + 1);
+      setResult(null);
+      setGuess('');
+    } else {
+      alert(t.congrats || "Session finished!");
+      setSelectedLevel(null);
+    }
   };
 
   const handleCheck = (e) => {
@@ -110,7 +112,7 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
 
   const saveToStudy = () => {
     const lang = languages.find(l => l.name.toLowerCase() === selectedLang.toLowerCase());
-    if (lang) {
+    if (lang && currentWord) {
       addWord(lang.id, currentWord.word, currentWord.translation);
       nextWord();
     } else {
