@@ -138,7 +138,7 @@ function App() {
   };
 
   return (
-    <>
+    <React.Fragment>
       <Header 
         currentPage={currentPage} 
         setCurrentPage={setCurrentPage}
@@ -150,79 +150,79 @@ function App() {
       
       <div className="app-container">
         <main>
-        {authError && (
-          <div className="auth-error-box">
-            <strong>Auth Error:</strong> {authError}
-            <button onClick={() => setAuthError(null)}>✖</button>
-          </div>
-        )}
+          {authError && (
+            <div className="auth-error-box">
+              <strong>Auth Error:</strong> {authError}
+              <button onClick={() => setAuthError(null)}>✖</button>
+            </div>
+          )}
 
-        {!user && !loading ? (
-          <section className="hero-section">
-            <h1>{t.heroTitle}</h1>
-            <p>{t.heroDesc}</p>
-            <button className="btn btn-primary btn-large" onClick={() => document.querySelector('.btn-primary').click()}>
-              {t.getStarted}
-            </button>
-          </section>
-        ) : (
-          <div className="fade-in">
-            {user && (
-              <div className="sub-nav">
-                <button className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} onClick={() => setCurrentPage('dashboard')}>{t.dashboard}</button>
-                <button className={currentPage === 'game' ? 'active' : ''} onClick={() => setCurrentPage('game')}>{t.gameMode}</button>
-                <button className={currentPage === 'discover' ? 'active' : ''} onClick={() => setCurrentPage('discover')}>{t.discover}</button>
-              </div>
-            )}
+          {!user && !loading ? (
+            <section className="hero-section">
+              <h1>{t.heroTitle}</h1>
+              <p>{t.heroDesc}</p>
+              <button className="btn btn-primary btn-large" onClick={() => document.querySelector('.btn-primary').click()}>
+                {t.getStarted}
+              </button>
+            </section>
+          ) : (
+            <div className="fade-in">
+              {user && (
+                <div className="sub-nav">
+                  <button className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} onClick={() => setCurrentPage('dashboard')}>{t.dashboard}</button>
+                  <button className={currentPage === 'game' ? 'active' : ''} onClick={() => setCurrentPage('game')}>{t.gameMode}</button>
+                  <button className={currentPage === 'discover' ? 'active' : ''} onClick={() => setCurrentPage('discover')}>{t.discover}</button>
+                </div>
+              )}
 
-            {currentPage === 'dashboard' && (
-              <Dashboard 
-                languages={languages} 
-                words={words}
-                addLanguage={addLanguage}
-                deleteLanguage={deleteLanguage}
-                onSelectLanguage={navigateToVocab}
-                isLoading={loading}
-                t={t}
-              />
-            )}
-            
-            {currentPage === 'vocabulary' && (
-              <Vocabulary 
-                language={languages.find(l => l.id === activeLanguageId)}
-                words={words.filter(w => w.languageId === activeLanguageId)}
-                addWord={addWord}
-                deleteWord={deleteWord}
-                onBack={() => setCurrentPage('dashboard')}
-                isLoading={loading}
-                t={t}
-              />
-            )}
+              {currentPage === 'dashboard' && (
+                <Dashboard 
+                  languages={languages} 
+                  words={words}
+                  addLanguage={addLanguage}
+                  deleteLanguage={deleteLanguage}
+                  onSelectLanguage={navigateToVocab}
+                  isLoading={loading}
+                  t={t}
+                />
+              )}
+              
+              {currentPage === 'vocabulary' && (
+                <Vocabulary 
+                  language={languages.find(l => l.id === activeLanguageId)}
+                  words={words.filter(w => w.languageId === activeLanguageId)}
+                  addWord={addWord}
+                  deleteWord={deleteWord}
+                  onBack={() => setCurrentPage('dashboard')}
+                  isLoading={loading}
+                  t={t}
+                />
+              )}
 
-            {currentPage === 'game' && (
-              <Game 
-                languages={languages}
-                words={words}
-                updateWordStats={updateWordStats}
-                isLoading={loading}
-                t={t}
-              />
-            )}
+              {currentPage === 'game' && (
+                <Game 
+                  languages={languages}
+                  words={words}
+                  updateWordStats={updateWordStats}
+                  isLoading={loading}
+                  t={t}
+                />
+              )}
 
-            {currentPage === 'discover' && (
-              <Explore 
-                languages={languages}
-                addWord={addWord}
-                t={t}
-                uiLanguage={uiLanguage}
-                isLoading={loading}
-              />
-            )}
-          </div>
-        )}
-      </main>
-    </div>
-    </>
+              {currentPage === 'discover' && (
+                <Explore 
+                  languages={languages}
+                  addWord={addWord}
+                  t={t}
+                  uiLanguage={uiLanguage}
+                  isLoading={loading}
+                />
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+    </React.Fragment>
   );
 }
 
