@@ -4,7 +4,6 @@ import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Vocabulary from './pages/Vocabulary';
 import Game from './pages/Game';
-import Explore from './pages/Explore';
 import { supabase } from './supabaseClient';
 import { translations } from './translations';
 import './index.css';
@@ -185,7 +184,6 @@ function App() {
                 <div className="sub-nav">
                   <button className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} onClick={() => setCurrentPage('dashboard')}>{t.dashboard}</button>
                   <button className={currentPage === 'game' ? 'active' : ''} onClick={() => setCurrentPage('game')}>{t.gameMode}</button>
-                  <button className={currentPage === 'discover' ? 'active' : ''} onClick={() => setCurrentPage('discover')}>{t.discover}</button>
                 </div>
               )}
 
@@ -220,16 +218,6 @@ function App() {
                   updateWordStats={updateWordStats}
                   isLoading={loading}
                   t={t}
-                />
-              )}
-
-              {currentPage === 'discover' && (
-                <Explore 
-                  languages={languages}
-                  addWord={addWord}
-                  t={t}
-                  uiLanguage={uiLanguage}
-                  isLoading={loading}
                 />
               )}
             </div>
