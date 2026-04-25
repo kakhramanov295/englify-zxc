@@ -59,7 +59,9 @@ export const translations = {
     notKnown: "I don't know",
     exploreTitle: "Learning Paths",
     exploreDesc: "Select a level to discover new words and expand your vocabulary.",
-    studySection: "Study List"
+    studySection: "Study List",
+    notEnoughWords: "Add at least 2 words to start the game!",
+    congrats: "Session finished! Great job!"
   },
   ru: {
     dashboard: "Библиотека",
@@ -121,7 +123,9 @@ export const translations = {
     notKnown: "Не знаю",
     exploreTitle: "Уровни сложности",
     exploreDesc: "Выберите уровень, чтобы изучать новые слова и расширять кругозор.",
-    studySection: "Список изучения"
+    studySection: "Список изучения",
+    notEnoughWords: "Добавьте минимум 2 слова, чтобы начать игру!",
+    congrats: "Сессия завершена! Отличная работа!"
   },
   uz: {
     dashboard: "Kutubxona",
@@ -183,6 +187,8 @@ export const translations = {
     notKnown: "Bilmayman",
     exploreTitle: "O'rganish yo'llari",
     exploreDesc: "Yangi so'zlarni kashf qilish va bilimingizni kengaytirish uchun darajani tanlang.",
-    studySection: "O'rganish ro'yxati"
+    studySection: "O'rganish ro'yxati",
+    notEnoughWords: "O'yinni boshlash uchun kamida 2 ta so'z qo'shing!",
+    congrats: "Sessiya yakunlandi! Baraka toping!"
   }
 };

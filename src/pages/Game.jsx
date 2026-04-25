@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 function Game({ languages, words, updateWordStats, isLoading, t }) {
   const [gameActive, setGameActive] = useState(false);
@@ -9,7 +9,7 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
   const [gameWords, setGameWords] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState('all');
 
-  // Derived state: currentWord is always tied to currentIndex
+  // Derived current word - ALWAYS syncs with currentIndex
   const currentWord = useMemo(() => {
     if (gameWords.length > 0 && currentIndex < gameWords.length) {
       return gameWords[currentIndex];
@@ -19,29 +19,35 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
 
   const startGame = () => {
     let pool = words;
+    
+    // Strict filtering with type safety
     if (selectedLanguage !== 'all') {
-      pool = words.filter(w => w.languageId === selectedLanguage);
+      pool = words.filter(w => String(w.languageId) === String(selectedLanguage));
     }
 
-    if (pool.length === 0) return;
+    // Safety check: Minimum words required
+    if (pool.length < 2) {
+      alert(t.notEnoughWords || "Add at least 2 words to start the game!");
+      return;
+    }
 
-    // Shuffle and start
+    // Shuffle once and initialize
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
     setGameWords(shuffled);
     setCurrentIndex(0);
     setScore({ correct: 0, total: 0 });
-    setGameActive(true);
-    setResult(null);
     setGuess('');
+    setResult(null);
+    setGameActive(true);
   };
 
   const nextWord = () => {
     if (currentIndex + 1 < gameWords.length) {
       setCurrentIndex(prev => prev + 1);
-      setResult(null);
       setGuess('');
+      setResult(null);
     } else {
-      alert(t.congrats || "Game finished!");
+      alert(t.congrats || "Session finished! Great job!");
       stopGame();
     }
   };
@@ -75,41 +81,19 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
 
   const stopGame = () => {
     setGameActive(false);
-    setCurrentIndex(0);
     setGameWords([]);
+    setCurrentIndex(0);
+    setResult(null);
   };
 
-  if (isLoading) {
-    return (
-      <div className="game-container">
-        <div className="card game-card">
-          <div className="skeleton skeleton-title" style={{ height: '32px', width: '200px', margin: '0 auto 20px' }}></div>
-          <div className="skeleton skeleton-text" style={{ height: '24px', width: '300px', margin: '0 auto 30px' }}></div>
-          <div className="skeleton skeleton-btn" style={{ width: '100%', height: '50px' }}></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (words.length === 0) {
-    return (
-      <div className="game-container">
-        <div className="empty-state">
-          <h3>{t.noWordsAvailable}</h3>
-          <p>{t.noWordsAvailableDesc}</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="game-container"><div className="card game-card">{t.processing}...</div></div>;
 
   return (
-    <div className="game-container">
+    <div className="game-container fade-in">
       {!gameActive ? (
         <div className="card game-card">
           <h2 style={{ marginBottom: '20px', fontSize: '2rem' }}>{t.practiceMode}</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>
-            {t.practiceDesc}
-          </p>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>{t.practiceDesc}</p>
           
           <div className="form-group" style={{ textAlign: 'left', marginBottom: '30px' }}>
             <label>{t.selectLanguage}</label>
@@ -117,42 +101,33 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
               value={selectedLanguage} 
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
-              <option value="all">{t.allLanguages} ({words.length} {words.length === 1 ? t.word : t.words})</option>
+              <option value="all">{t.allLanguages} ({words.length})</option>
               {languages.map(lang => {
-                const count = words.filter(w => w.languageId === lang.id).length;
-                if (count > 0) {
-                  return (
-                    <option key={lang.id} value={lang.id}>
-                      {lang.name} ({count} {count === 1 ? t.word : t.words})
-                    </option>
-                  );
-                }
-                return null;
+                const count = words.filter(w => String(w.languageId) === String(lang.id)).length;
+                return (
+                  <option key={lang.id} value={lang.id}>
+                    {lang.name} ({count})
+                  </option>
+                );
               })}
             </select>
           </div>
 
-          <button 
-            className="btn btn-primary" 
-            style={{ width: '100%', fontSize: '1.2rem', padding: '15px' }}
-            onClick={startGame}
-          >
+          <button className="btn btn-primary" style={{ width: '100%', padding: '15px' }} onClick={startGame}>
             {t.startGame}
           </button>
         </div>
       ) : (
         <div className="card game-card">
           <div className="game-stats">
-            <div>{t.score}: <strong style={{ color: 'var(--text-main)' }}>{score.correct} / {score.total}</strong></div>
+            <div>{t.score}: <strong>{score.correct} / {score.total}</strong></div>
             <button className="btn" onClick={stopGame}>{t.endGame}</button>
           </div>
 
           <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>
             {t.word} {currentIndex + 1} / {gameWords.length}:
           </div>
-          <div className="current-word">
-            {currentWord?.original}
-          </div>
+          <div className="current-word">{currentWord?.original}</div>
 
           <form onSubmit={handleGuess}>
             <div className="game-input-group">
@@ -164,11 +139,7 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
                 disabled={!!result}
                 autoFocus
               />
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-                disabled={!!result || !guess.trim()}
-              >
+              <button type="submit" className="btn btn-primary" disabled={!!result || !guess.trim()}>
                 {t.checkAnswer}
               </button>
             </div>
@@ -180,11 +151,7 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
                 {result.message}
               </div>
               {result.type === 'error' && (
-                <button 
-                  className="btn btn-primary" 
-                  style={{ width: '100%', marginTop: '15px' }} 
-                  onClick={nextWord}
-                >
+                <button className="btn btn-primary" style={{ width: '100%', marginTop: '15px' }} onClick={nextWord}>
                   {t.nextWord}
                 </button>
               )}
