@@ -80,7 +80,7 @@ function Header({ currentPage, setCurrentPage, user }) {
           <svg width="120" height="32" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="7" cy="14" r="3.5" fill="#2563eb"/>
             <rect x="14" y="6" width="8" height="20" rx="4" transform="rotate(-25 14 6)" fill="#2563eb"/>
-            <text x="38" y="24" fill="white" style="font-family: 'Inter', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.5px;">Lingvo</text>
+            <text x="38" y="24" fill="white" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '22px', letterSpacing: '-0.5px' }}>Lingvo</text>
           </svg>
         </h1>
         
