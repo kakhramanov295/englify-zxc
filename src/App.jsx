@@ -1,3 +1,4 @@
+// Lingvo - Vocabulary App
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
