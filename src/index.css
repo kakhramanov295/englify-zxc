@@ -160,6 +160,23 @@ body {
   width: fit-content;
   margin-left: auto;
   margin-right: auto;
+  z-index: 10;
+  position: relative;
+}
+
+@media (max-width: 480px) {
+  .sub-nav {
+    width: 100%;
+    margin-bottom: 24px;
+    border-radius: 12px;
+  }
+  
+  .sub-nav button {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    text-align: center;
+  }
 }
 
 .sub-nav button {
@@ -235,20 +252,27 @@ body {
 }
 
 @media (max-width: 1024px) {
-  .header .container {
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .nav-links {
-    width: 100%;
-    justify-content: center;
+  .header-content {
+    padding: 0 20px;
   }
 }
 
 @media (max-width: 480px) {
+  .header-content {
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 10px 15px;
+  }
+
   .header h1.logo {
-    padding: 4px;
+    padding: 0;
+    order: 1;
+  }
+
+  .auth-buttons {
+    order: 2;
+    gap: 10px;
   }
 
   .nav-links button {
@@ -257,12 +281,26 @@ body {
   }
   
   .auth-buttons .btn {
-    padding: 10px 14px;
-    font-size: 0.85rem;
+    padding: 8px 12px;
+    font-size: 0.8rem;
   }
 
   .lang-switcher {
-    display: none; /* Hide on mobile to save space, or we can move it */
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 5px;
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 10px;
+  }
+  
+  .lang-switcher button {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 0.75rem;
   }
 }
 
