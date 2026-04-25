@@ -44,8 +44,10 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
         const fallback = fallbackWords[level] || [];
         setSessionWords(fallback);
         pickRandomWord(fallback);
-        setSelectedLevel(level);
-      }
+      const pool = (data && data.length > 0) ? data : (fallbackWords[level] || []);
+      setSessionWords(pool);
+      pickRandomWord(pool);
+      setSelectedLevel(level);
     } catch (err) {
       const fallback = fallbackWords[level] || [];
       setSessionWords(fallback);
@@ -57,10 +59,22 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
   };
 
   const pickRandomWord = (pool) => {
+    if (!pool || pool.length === 0) return;
     const random = pool[Math.floor(Math.random() * pool.length)];
-    // Dynamically pick translation based on UI language
-    const translation = uiLanguage === 'ru' ? random.translation_ru : 
-                        uiLanguage === 'uz' ? random.translation_uz : 
+    
+    // DECISION LOGIC: Determine the target translation language
+    // Avoid translating English to English, Russian to Russian, etc.
+    let targetLang = uiLanguage;
+    
+    // If Source and Target are the same, try to find a fallback target
+    if (selectedLang.toLowerCase() === 'english' && uiLanguage === 'en') {
+      targetLang = 'ru'; // Fallback to Russian if trying to translate English to English
+    } else if (selectedLang.toLowerCase() === 'german' && uiLanguage === 'de') {
+      targetLang = 'en';
+    }
+
+    const translation = targetLang === 'ru' ? random.translation_ru : 
+                        targetLang === 'uz' ? random.translation_uz : 
                         random.translation_en;
     
     setCurrentWord({ ...random, translation });
@@ -86,13 +100,13 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
       addWord(lang.id, currentWord.word, currentWord.translation);
       pickRandomWord(sessionWords);
     } else {
-      alert("Please add " + selectedLang + " to your Library first!");
+      alert(`Please add ${selectedLang} to your Library first!`);
     }
   };
 
   if (!selectedLevel) {
     return (
-      <div className="explore-page">
+      <div className="explore-page fade-in">
         <section className="hero-section" style={{ padding: '40px 0' }}>
           <h1>{t.exploreTitle}</h1>
           <p>{t.exploreDesc}</p>
@@ -104,6 +118,7 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
             <option value="English">English</option>
             <option value="German">German</option>
             <option value="Spanish">Spanish</option>
+            <option value="French">French</option>
           </select>
         </div>
 
@@ -124,11 +139,11 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
     <div className="game-container fade-in">
       <div className="page-header">
         <button className="btn" onClick={() => setSelectedLevel(null)}>← {t.back}</button>
-        <h2 style={{ fontSize: '1.5rem' }}>{selectedLevel}</h2>
+        <h2 style={{ fontSize: '1.5rem' }}>{selectedLang} ({selectedLevel})</h2>
       </div>
 
       <div className="card game-card">
-        <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>{selectedLang} {t.word}:</div>
+        <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>{t.word}:</div>
         <div className="current-word">{currentWord?.word}</div>
 
         <form onSubmit={handleCheck}>
