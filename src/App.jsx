@@ -115,10 +115,24 @@ function App() {
     const word = words.find(w => w.id === wordId);
     if (!word) return;
 
+    const newCorrect = isCorrect ? (word.correct_count || 0) + 1 : (word.correct_count || 0);
+    const newIncorrect = !isCorrect ? (word.incorrect_count || 0) + 1 : (word.incorrect_count || 0);
+    
+    // Duolingo-style status logic
+    let newStatus = 'learning';
+    if (!isCorrect && newIncorrect >= 2) {
+      newStatus = 'hard';
+    } else if (isCorrect && newCorrect >= 3) {
+      newStatus = 'known';
+    } else if (isCorrect) {
+      newStatus = 'learning';
+    }
+
     const updates = {
-      correct_count: isCorrect ? (word.correct_count || 0) + 1 : (word.correct_count || 0),
-      incorrect_count: !isCorrect ? (word.incorrect_count || 0) + 1 : (word.incorrect_count || 0),
-      status: isCorrect ? 'known' : 'learning'
+      correct_count: newCorrect,
+      incorrect_count: newIncorrect,
+      status: newStatus,
+      last_seen: new Date().toISOString()
     };
 
     const { error } = await supabase.from('words').update(updates).eq('id', wordId);

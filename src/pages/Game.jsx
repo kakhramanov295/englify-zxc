@@ -20,20 +20,25 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
   const startGame = () => {
     let pool = words;
     
-    // Strict filtering with type safety
     if (selectedLanguage !== 'all') {
       pool = words.filter(w => String(w.languageId) === String(selectedLanguage));
     }
 
-    // Safety check: Minimum words required
     if (pool.length < 2) {
       alert(t.notEnoughWords || "Add at least 2 words to start the game!");
       return;
     }
 
-    // Shuffle once and initialize
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    setGameWords(shuffled);
+    // SMART SORTING: Hard -> Learning -> New -> Known
+    const priority = { hard: 4, learning: 3, new: 2, known: 1 };
+    const sorted = [...pool].sort((a, b) => {
+      const pA = priority[a.status || 'new'] || 2;
+      const pB = priority[b.status || 'new'] || 2;
+      if (pA !== pB) return pB - pA;
+      return Math.random() - 0.5; // Shuffle within same priority
+    });
+
+    setGameWords(sorted);
     setCurrentIndex(0);
     setScore({ correct: 0, total: 0 });
     setGuess('');
@@ -58,7 +63,6 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
 
     const isCorrect = guess.toLowerCase().trim() === currentWord.translation.toLowerCase().trim();
     
-    // Sync stats with Supabase
     if (updateWordStats) {
       updateWordStats(currentWord.id, isCorrect);
     }
@@ -76,6 +80,12 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
         type: 'error', 
         message: `${t.incorrect} "${currentWord.translation}".` 
       });
+      
+      // ADAPTIVE REPETITION: Insert this word again 3 positions later
+      const newQueue = [...gameWords];
+      const repeatIdx = Math.min(currentIndex + 4, newQueue.length);
+      newQueue.splice(repeatIdx, 0, currentWord); 
+      setGameWords(newQueue);
     }
   };
 
@@ -124,8 +134,15 @@ function Game({ languages, words, updateWordStats, isLoading, t }) {
             <button className="btn" onClick={stopGame}>{t.endGame}</button>
           </div>
 
-          <div style={{ color: 'var(--text-secondary)', marginBottom: '10px' }}>
-            {t.word} {currentIndex + 1} / {gameWords.length}:
+          <div className="game-stats-row">
+            <div style={{ color: 'var(--text-secondary)' }}>
+              {t.word} {currentIndex + 1} / {gameWords.length}:
+            </div>
+            {currentWord?.status && (
+              <span className={`status-badge status-${currentWord.status}`}>
+                {currentWord.status.toUpperCase()}
+              </span>
+            )}
           </div>
           <div className="current-word">{currentWord?.original}</div>
 
