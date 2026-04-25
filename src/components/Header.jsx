@@ -107,7 +107,7 @@ function Header({ currentPage, setCurrentPage, user }) {
           ) : (
             <div className="user-profile">
               <img 
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=8b5cf6&color=fff&rounded=true&size=36`} 
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=2563eb&color=fff&rounded=true&size=36`} 
                 alt="Profile" 
                 className="profile-avatar"
               />
