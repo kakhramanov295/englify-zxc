@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Game({ languages, words, isLoading, t }) {
+function Game({ languages, words, updateWordStats, isLoading, t }) {
   const [gameActive, setGameActive] = useState(false);
   const [currentWord, setCurrentWord] = useState(null);
   const [guess, setGuess] = useState('');
@@ -38,6 +38,11 @@ function Game({ languages, words, isLoading, t }) {
 
     const isCorrect = guess.toLowerCase().trim() === currentWord.translation.toLowerCase().trim();
     
+    // Sync stats with Supabase
+    if (updateWordStats) {
+      updateWordStats(currentWord.id, isCorrect);
+    }
+
     setScore(prev => ({
       correct: prev.correct + (isCorrect ? 1 : 0),
       total: prev.total + 1
@@ -154,7 +159,7 @@ function Game({ languages, words, isLoading, t }) {
                 className="btn btn-primary"
                 disabled={!!result || !guess.trim()}
               >
-                {t.addWord}
+                {t.checkAnswer}
               </button>
             </div>
           </form>

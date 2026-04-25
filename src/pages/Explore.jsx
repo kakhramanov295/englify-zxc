@@ -84,11 +84,15 @@ function Explore({ languages, addWord, t, uiLanguage, isLoading }) {
 
   const handleCheck = (e) => {
     e.preventDefault();
-    if (!guess.trim() || !currentWord) return;
+    if (!guess.trim() || !currentWord || result) return;
 
     const isCorrect = guess.toLowerCase().trim() === currentWord.translation.toLowerCase().trim();
     if (isCorrect) {
       setResult({ type: 'success', message: t.correct });
+      // Auto-next after 1.5s
+      setTimeout(() => {
+        pickRandomWord(sessionWords);
+      }, 1500);
     } else {
       setResult({ type: 'error', message: `${t.incorrect} "${currentWord.translation}"` });
     }
