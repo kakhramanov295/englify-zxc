@@ -138,7 +138,7 @@ function App() {
   };
 
   return (
-    <div className="app-container">
+    <>
       <Header 
         currentPage={currentPage} 
         setCurrentPage={setCurrentPage}
@@ -148,7 +148,8 @@ function App() {
         changeLanguage={changeLanguage}
       />
       
-      <main>
+      <div className="app-container">
+        <main>
         {authError && (
           <div className="auth-error-box">
             <strong>Auth Error:</strong> {authError}
