@@ -1,12 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-function Game({ languages, words, updateWordStats, isLoading, t }) {
+function Game({ languages, words, activeLanguageId, updateWordStats, isLoading, t }) {
   const [gameActive, setGameActive] = useState(false);
   const [queue, setQueue] = useState([]);
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
   const [stats, setStats] = useState({ correct: 0, total: 0 });
-  const [selectedLanguage, setSelectedLanguage] = useState('all');
+  const [selectedLanguage, setSelectedLanguage] = useState(activeLanguageId || 'all');
+  
+  // Update selection if activeLanguageId changes (e.g. from nav)
+  useEffect(() => {
+    if (activeLanguageId) {
+      setSelectedLanguage(activeLanguageId);
+    }
+  }, [activeLanguageId]);
 
   // The current word is ALWAYS the first element of the queue
   const currentWord = useMemo(() => queue.length > 0 ? queue[0] : null, [queue]);

@@ -1,154 +1,60 @@
-// Lingvo - Vocabulary App
+// DAUN - Vocabulary App
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Vocabulary from './pages/Vocabulary';
 import Game from './pages/Game';
-import { supabase } from './supabaseClient';
-import { translations } from './translations';
+import { useAuth } from './context/AuthContext';
+import { useLanguages } from './context/LanguageContext';
 import './index.css';
 
 function App() {
+  const { user, loading: authLoading } = useAuth();
+  const { 
+    uiLanguage, 
+    activeLanguageId, 
+    languages, 
+    words, 
+    t, 
+    isLoading: dataLoading,
+    changeUiLanguage,
+    changeActiveLanguage,
+    addLanguage,
+    deleteLanguage,
+    addWord,
+    deleteWord,
+    updateWordStats
+  } = useLanguages();
+
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const [activeLanguageId, setActiveLanguageId] = useState(null);
-  const [uiLanguage, setUiLanguage] = useState('en');
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [languages, setLanguages] = useState([]);
-  const [words, setWords] = useState([]);
-  
-  const t = translations[uiLanguage];
 
-  // Auth & Settings Listener
+  // Sync route with activeLanguageId on refresh
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
-      if (session?.user) fetchUserSettings(session.user.id);
-      else setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-      if (session?.user) fetchUserSettings(session.user.id);
-      else {
-        setLoading(false);
-        setLanguages([]);
-        setWords([]);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchUserSettings = async (userId) => {
-    const { data, error } = await supabase
-      .from('user_settings')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (data) {
-      setUiLanguage(data.ui_language);
-    } else if (error && error.code === 'PGRST116') {
-      await supabase.from('user_settings').insert([{ user_id: userId, ui_language: 'en' }]);
+    if (activeLanguageId && !dataLoading) {
+      setCurrentPage('vocabulary');
     }
-  };
-
-  const changeLanguage = async (lang) => {
-    setUiLanguage(lang);
-    if (user) {
-      await supabase.from('user_settings').upsert({ user_id: user.id, ui_language: lang });
-    }
-  };
-
-  // Data Fetching
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      const [langsRes, wordsRes] = await Promise.all([
-        supabase.from('languages').select('*').order('created_at'),
-        supabase.from('words').select('*').order('created_at')
-      ]);
-
-      if (langsRes.data) setLanguages(langsRes.data);
-      if (wordsRes.data) {
-        setWords(wordsRes.data.map(w => ({ ...w, languageId: w.language_id })));
-      }
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [user]);
-
-  const addLanguage = async (name) => {
-    const { data } = await supabase.from('languages').insert([{ user_id: user.id, name }]).select();
-    if (data) setLanguages([...languages, data[0]]);
-  };
-
-  const deleteLanguage = async (id) => {
-    const { error } = await supabase.from('languages').delete().eq('id', id);
-    if (!error) {
-      setLanguages(languages.filter(l => l.id !== id));
-      setWords(words.filter(w => w.languageId !== id));
-    }
-  };
-
-  const addWord = async (languageId, original, translation) => {
-    const { data } = await supabase.from('words').insert([{ 
-      user_id: user.id, 
-      language_id: languageId, 
-      original, 
-      translation,
-      status: 'new'
-    }]).select();
-    if (data) {
-      const added = data[0];
-      setWords([...words, { ...added, languageId: added.language_id }]);
-    }
-  };
-
-  const updateWordStats = async (wordId, isCorrect) => {
-    const word = words.find(w => w.id === wordId);
-    if (!word) return;
-
-    const newCorrect = isCorrect ? (word.correct_count || 0) + 1 : (word.correct_count || 0);
-    const newIncorrect = !isCorrect ? (word.incorrect_count || 0) + 1 : (word.incorrect_count || 0);
-    
-    // Duolingo-style status logic
-    let newStatus = 'learning';
-    if (!isCorrect && newIncorrect >= 2) {
-      newStatus = 'hard';
-    } else if (isCorrect && newCorrect >= 3) {
-      newStatus = 'known';
-    } else if (isCorrect) {
-      newStatus = 'learning';
-    }
-
-    const updates = {
-      correct_count: newCorrect,
-      incorrect_count: newIncorrect,
-      status: newStatus,
-      last_seen: new Date().toISOString()
-    };
-
-    const { error } = await supabase.from('words').update(updates).eq('id', wordId);
-    if (!error) {
-      setWords(words.map(w => w.id === wordId ? { ...w, ...updates } : w));
-    }
-  };
-
-  const deleteWord = async (id) => {
-    const { error } = await supabase.from('words').delete().eq('id', id);
-    if (!error) setWords(words.filter(w => w.id !== id));
-  };
+  }, [activeLanguageId, dataLoading]);
 
   const navigateToVocab = (langId) => {
-    setActiveLanguageId(langId);
+    changeActiveLanguage(langId);
     setCurrentPage('vocabulary');
   };
+
+  const handleBackToDashboard = () => {
+    changeActiveLanguage(null);
+    setCurrentPage('dashboard');
+  };
+
+  // Prevent flash: show nothing or a loader until initialized
+  if (authLoading || dataLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loader"></div>
+        <p>Loading daun.uz...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -158,7 +64,7 @@ function App() {
         user={user}
         t={t}
         uiLanguage={uiLanguage}
-        changeLanguage={changeLanguage}
+        changeLanguage={changeUiLanguage}
       />
       
       <div className="app-container">
@@ -170,7 +76,7 @@ function App() {
             </div>
           )}
 
-          {!user && !loading ? (
+          {!user ? (
             <section className="hero-section">
               <h1>{t.heroTitle}</h1>
               <p>{t.heroDesc}</p>
@@ -180,12 +86,20 @@ function App() {
             </section>
           ) : (
             <div className="fade-in">
-              {user && (
-                <div className="sub-nav">
-                  <button className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} onClick={() => setCurrentPage('dashboard')}>{t.dashboard}</button>
-                  <button className={currentPage === 'game' ? 'active' : ''} onClick={() => setCurrentPage('game')}>{t.gameMode}</button>
-                </div>
-              )}
+              <div className="sub-nav">
+                <button 
+                  className={currentPage === 'dashboard' || currentPage === 'vocabulary' ? 'active' : ''} 
+                  onClick={handleBackToDashboard}
+                >
+                  {t.dashboard}
+                </button>
+                <button 
+                  className={currentPage === 'game' ? 'active' : ''} 
+                  onClick={() => setCurrentPage('game')}
+                >
+                  {t.gameMode}
+                </button>
+              </div>
 
               {currentPage === 'dashboard' && (
                 <Dashboard 
@@ -194,7 +108,7 @@ function App() {
                   addLanguage={addLanguage}
                   deleteLanguage={deleteLanguage}
                   onSelectLanguage={navigateToVocab}
-                  isLoading={loading}
+                  isLoading={dataLoading}
                   t={t}
                 />
               )}
@@ -205,8 +119,8 @@ function App() {
                   words={words.filter(w => w.languageId === activeLanguageId)}
                   addWord={addWord}
                   deleteWord={deleteWord}
-                  onBack={() => setCurrentPage('dashboard')}
-                  isLoading={loading}
+                  onBack={handleBackToDashboard}
+                  isLoading={dataLoading}
                   t={t}
                 />
               )}
@@ -215,8 +129,9 @@ function App() {
                 <Game 
                   languages={languages}
                   words={words}
+                  activeLanguageId={activeLanguageId}
                   updateWordStats={updateWordStats}
-                  isLoading={loading}
+                  isLoading={dataLoading}
                   t={t}
                 />
               )}

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useLanguages } from '../context/LanguageContext';
 
-function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLanguage }) {
+function Header({ setCurrentPage, user, t, uiLanguage, changeLanguage }) {
+  const { languages, words } = useLanguages();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('login');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Form states
   const [email, setEmail] = useState('');
@@ -12,9 +16,18 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const tStrings = {
+    en: { learning: "Languages learning: ", guessed: "Words guessed: ", changeLanguage: "Change Language", acc: "Account" },
+    ru: { learning: "Изучает языков: ", guessed: "Угадано слов: ", changeLanguage: "Сменить язык", acc: "Аккаунт" },
+    uz: { learning: "O'rganilayotgan tillar: ", guessed: "Topilgan so'zlar: ", changeLanguage: "Tilni o'zgartirish", acc: "Hisob" }
+  };
+  const profileT = tStrings[uiLanguage] || tStrings.en;
+  const totalCorrectAnswers = words.reduce((acc, w) => acc + (w.correct_count || 0), 0);
+
   const openModal = (type) => {
     setModalType(type);
     setIsModalOpen(true);
+    setIsMenuOpen(false); // Close menu if open
     setError(null);
     setEmail('');
     setPassword('');
@@ -71,31 +84,34 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    setIsMenuOpen(false);
   };
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
     <>
       <header className="header">
-        <div className="header-content">
-          <h1 className="logo" onClick={() => setCurrentPage('dashboard')}>
-            <svg width="124" height="32" viewBox="0 0 124 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div className="header-content" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          
+          <h1 className="logo" onClick={() => setCurrentPage('dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="7" cy="16" r="4" fill="#2563eb"/>
               <rect x="14" y="6" width="8" height="20" rx="4" transform="rotate(-25 14 6)" fill="#2563eb"/>
-              <text x="42" y="17" fill="white" dominantBaseline="central" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '22px', letterSpacing: '-0.5px' }}>Lingvo</text>
             </svg>
+            <span className="logo-text">daun.uz</span>
           </h1>
 
-          <div className="auth-buttons">
-            <div className="lang-dropdown">
-              <select 
-                value={uiLanguage} 
-                onChange={(e) => changeLanguage(e.target.value)}
-                className="lang-select"
-              >
-                <option value="en">English</option>
-                <option value="ru">Русский</option>
-                <option value="uz">O'zbek</option>
-              </select>
+          {/* Desktop Navigation */}
+          <div className="desktop-nav">
+            <div className="lang-switcher">
+              {['en', 'ru', 'uz'].map(lang => (
+                <button 
+                  key={lang}
+                  className={`lang-btn ${uiLanguage === lang ? 'active' : ''}`}
+                  onClick={() => changeLanguage(lang)}
+                >{lang.toUpperCase()}</button>
+              ))}
             </div>
 
             {!user ? (
@@ -113,6 +129,76 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
               </div>
             )}
           </div>
+
+          {/* Hamburger Button */}
+          <button className={`burger-menu ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu} aria-label="Toggle Menu" style={{ marginLeft: 'auto', order: 99 }}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        <div className={`mobile-menu-dropdown ${isMenuOpen ? 'show' : ''}`}>
+          <div className="mobile-menu-content google-style">
+            {user && (
+              <>
+                <div className="mobile-user-info">
+                  <img 
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=e91e63&color=fff&rounded=true&size=48`} 
+                    alt="Profile" 
+                    className="profile-avatar-large"
+                  />
+                  <div className="user-details">
+                    <span className="user-name">{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
+                    <span className="user-email">{user.email}</span>
+                    <span className="user-stats">
+                      {profileT.learning} <strong>{languages.length}</strong><br/>
+                      {profileT.guessed} <strong>{totalCorrectAnswers}</strong>
+                    </span>
+                  </div>
+                </div>
+                <div className="menu-divider"></div>
+              </>
+            )}
+
+            <div className="mobile-actions-list">
+              {user && (
+                <div className="menu-item no-hover">
+                  <svg className="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                  <span>{profileT.acc}</span>
+                </div>
+              )}
+              
+              <div className="menu-item lang-selector-item">
+                <svg className="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                <div className="lang-switcher-inline">
+                  <span>{profileT.changeLanguage}</span>
+                  <div className="inline-lang-btns">
+                    {['en', 'ru', 'uz'].map(lang => (
+                      <button 
+                        key={lang}
+                        className={`lang-btn ${uiLanguage === lang ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); changeLanguage(lang); setIsMenuOpen(false); }}
+                      >{lang.toUpperCase()}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {user ? (
+                <div className="menu-item" onClick={handleLogout}>
+                  <svg className="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  <span>{t.logout}</span>
+                </div>
+              ) : (
+                <div className="menu-item" onClick={() => openModal('login')}>
+                  <svg className="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                  <span>{t.login}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 
@@ -125,7 +211,7 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
               {modalType === 'login' ? t.authDesc : t.regDesc}
             </p>
             
-            {error && <div style={{ color: '#ff4d4d', marginBottom: '15px', padding: '10px', background: 'rgba(255, 77, 77, 0.1)', borderRadius: '6px', fontSize: '0.9rem' }}>{error}</div>}
+            {error && <div className="error-message">{error}</div>}
             
             <form onSubmit={handleAuth}>
               {modalType === 'register' && (
@@ -160,7 +246,7 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
                   minLength={6}
                 />
               </div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
+              <button type="submit" className="btn btn-primary w-full" style={{ marginTop: '10px' }} disabled={loading}>
                 {loading ? t.processing : (modalType === 'login' ? t.login : t.register)}
               </button>
             </form>
@@ -171,8 +257,7 @@ function Header({ currentPage, setCurrentPage, user, t, uiLanguage, changeLangua
             
             <button 
               type="button" 
-              className="btn btn-google" 
-              style={{ width: '100%' }} 
+              className="btn btn-google w-full" 
               onClick={handleGoogleLogin}
               disabled={loading}
             >
