@@ -51,7 +51,7 @@ function App() {
     return (
       <div className="loading-screen">
         <div className="loader"></div>
-        <p>Loading daun.uz...</p>
+        <p>Loading LangStudy...</p>
       </div>
     );
   }

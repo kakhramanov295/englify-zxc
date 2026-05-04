@@ -99,7 +99,7 @@ function Header({ setCurrentPage, user, t, uiLanguage, changeLanguage }) {
               <circle cx="7" cy="16" r="4" fill="#2563eb"/>
               <rect x="14" y="6" width="8" height="20" rx="4" transform="rotate(-25 14 6)" fill="#2563eb"/>
             </svg>
-            <span className="logo-text">daun.uz</span>
+            <span className="logo-text">LangStudy</span>
           </h1>
 
           {/* Desktop Navigation */}
