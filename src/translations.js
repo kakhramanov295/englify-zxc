@@ -2,7 +2,7 @@ export const translations = {
   en: {
     dashboard: "Library",
     gameMode: "Practice",
-    login: "Login",
+    login: "Log in",
     register: "Register",
     logout: "Logout",
     yourLanguages: "My Languages",
