@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Vocabulary from './pages/Vocabulary';
 import Game from './pages/Game';
+import Profile from './pages/Profile';
 import { useAuth } from './context/AuthContext';
 import { useLanguages } from './context/LanguageContext';
 import './index.css';
@@ -99,6 +100,12 @@ function App() {
                 >
                   {t.gameMode}
                 </button>
+                <button 
+                  className={currentPage === 'profile' ? 'active' : ''} 
+                  onClick={() => setCurrentPage('profile')}
+                >
+                  {t.profile}
+                </button>
               </div>
 
               {currentPage === 'dashboard' && (
@@ -133,6 +140,13 @@ function App() {
                   updateWordStats={updateWordStats}
                   isLoading={dataLoading}
                   t={t}
+                />
+              )}
+
+              {currentPage === 'profile' && (
+                <Profile 
+                  t={t}
+                  uiLanguage={uiLanguage}
                 />
               )}
             </div>

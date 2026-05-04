@@ -13,10 +13,21 @@ export function LanguageProvider({ children }) {
   const [words, setWords] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
+  const [userUid, setUserUid] = useState(null);
 
   const t = useMemo(() => translations[uiLanguage] || translations.en, [uiLanguage]);
 
 
+
+  // Generate a short unique ID like LS-A1B2C3
+  const generateUid = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no confusing chars (0/O, 1/I)
+    let result = 'LS-';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
 
   const fetchUserSettings = async (userId) => {
     try {
@@ -29,12 +40,34 @@ export function LanguageProvider({ children }) {
       if (data) {
         if (data.preferred_language) setUiLanguage(data.preferred_language);
         if (data.active_language_id) setActiveLanguageId(data.active_language_id);
+        
+        // Handle UID: if user has one, use it; otherwise generate
+        if (data.uid) {
+          setUserUid(data.uid);
+        } else {
+          const newUid = generateUid();
+          const { error: uidError } = await supabase
+            .from('user_settings')
+            .update({ uid: newUid })
+            .eq('user_id', userId);
+          if (!uidError) {
+            setUserUid(newUid);
+          } else if (uidError.code === '23505') {
+            // UID collision, retry with a different one
+            const retryUid = generateUid();
+            await supabase.from('user_settings').update({ uid: retryUid }).eq('user_id', userId);
+            setUserUid(retryUid);
+          }
+        }
       } else if (error && error.code === 'PGRST116') {
-        // No settings yet, create default
+        // No settings yet, create default with UID
+        const newUid = generateUid();
         await supabase.from('user_settings').insert([{ 
           user_id: userId, 
-          preferred_language: 'en' 
+          preferred_language: 'en',
+          uid: newUid
         }]);
+        setUserUid(newUid);
       }
     } catch (err) {
       console.error('Error fetching user settings:', err);
@@ -219,6 +252,7 @@ export function LanguageProvider({ children }) {
     languages,
     words,
     t,
+    userUid,
     isLoading: !isInitialized || dataLoading,
     changeUiLanguage,
     changeActiveLanguage,

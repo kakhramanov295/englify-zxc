@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useLanguages } from '../context/LanguageContext';
 
 function Header({ setCurrentPage, user, t, uiLanguage, changeLanguage }) {
-  const { languages, words } = useLanguages();
+  const { languages, words, userUid } = useLanguages();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('login');
@@ -15,6 +15,7 @@ function Header({ setCurrentPage, user, t, uiLanguage, changeLanguage }) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [uidCopied, setUidCopied] = useState(false);
 
   const tStrings = {
     en: { learning: "Languages learning: ", guessed: "Words guessed: ", changeLanguage: "Change Language", acc: "Account" },
@@ -23,6 +24,25 @@ function Header({ setCurrentPage, user, t, uiLanguage, changeLanguage }) {
   };
   const profileT = tStrings[uiLanguage] || tStrings.en;
   const totalCorrectAnswers = words.reduce((acc, w) => acc + (w.correct_count || 0), 0);
+
+  const copyUid = async () => {
+    if (!userUid) return;
+    try {
+      await navigator.clipboard.writeText(userUid);
+      setUidCopied(true);
+      setTimeout(() => setUidCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = userUid;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setUidCopied(true);
+      setTimeout(() => setUidCopied(false), 2000);
+    }
+  };
 
   const openModal = (type) => {
     setModalType(type);
@@ -117,13 +137,13 @@ function Header({ setCurrentPage, user, t, uiLanguage, changeLanguage }) {
             {!user ? (
               <button className="btn btn-primary" onClick={() => openModal('login')}>{t.login}</button>
             ) : (
-              <div className="user-profile">
+              <div className="user-profile" onClick={() => setCurrentPage('profile')} style={{ cursor: 'pointer' }}>
                 <img 
                   src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=2563eb&color=fff&rounded=true&size=32`} 
                   alt="Profile" 
                   className="profile-avatar"
                 />
-                <button className="logout-icon-btn" onClick={handleLogout} title={t.logout}>
+                <button className="logout-icon-btn" onClick={(e) => { e.stopPropagation(); handleLogout(); }} title={t.logout}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 </button>
               </div>
@@ -149,7 +169,7 @@ function Header({ setCurrentPage, user, t, uiLanguage, changeLanguage }) {
                     alt="Profile" 
                     className="profile-avatar-large"
                   />
-                  <div className="user-details">
+                  <div className="user-details" onClick={() => { setCurrentPage('profile'); setIsMenuOpen(false); }} style={{ cursor: 'pointer' }}>
                     <span className="user-name">{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
                     <span className="user-email">{user.email}</span>
                     <span className="user-stats">

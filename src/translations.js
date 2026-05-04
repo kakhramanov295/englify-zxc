@@ -55,7 +55,17 @@ export const translations = {
     notKnown: "I don't know",
     studySection: "Study List",
     notEnoughWords: "Add at least 2 words to start the game!",
-    congrats: "Session finished! Great job!"
+    congrats: "Session finished! Great job!",
+    yourUid: "Your ID",
+    copyUid: "Copy UID",
+    copied: "Copied!",
+    profile: "Profile",
+    memberSince: "Member since",
+    searchUser: "Find a friend",
+    searchPlaceholder: "Enter UID (e.g. LS-XXXXXX)",
+    userNotFound: "User not found",
+    backToMyProfile: "Back to my profile",
+    foundUserStats: "User stats"
   },
   ru: {
     dashboard: "Библиотека",
@@ -113,7 +123,17 @@ export const translations = {
     notKnown: "Не знаю",
     studySection: "Список изучения",
     notEnoughWords: "Добавьте минимум 2 слова, чтобы начать игру!",
-    congrats: "Сессия завершена! Отличная работа!"
+    congrats: "Сессия завершена! Отличная работа!",
+    yourUid: "Ваш ID",
+    copyUid: "Скопировать UID",
+    copied: "Скопировано!",
+    profile: "Профиль",
+    memberSince: "На сайте с",
+    searchUser: "Найти друга",
+    searchPlaceholder: "Введите UID (напр. LS-XXXXXX)",
+    userNotFound: "Пользователь не найден",
+    backToMyProfile: "Вернуться в мой профиль",
+    foundUserStats: "Статистика пользователя"
   },
   uz: {
     dashboard: "Kutubxona",
@@ -171,6 +191,16 @@ export const translations = {
     notKnown: "Bilmayman",
     studySection: "O'rganish ro'yxati",
     notEnoughWords: "O'yinni boshlash uchun kamida 2 ta so'z qo'shing!",
-    congrats: "Sessiya yakunlandi! Baraka toping!"
+    congrats: "Sessiya yakunlandi! Baraka toping!",
+    yourUid: "Sizning ID",
+    copyUid: "UID nusxalash",
+    copied: "Nusxalandi!",
+    profile: "Profil",
+    memberSince: "A'zo bo'lgan sana",
+    searchUser: "Do'stni qidirish",
+    searchPlaceholder: "UID kiriting (masalan, LS-XXXXXX)",
+    userNotFound: "Foydalanuvchi topilmadi",
+    backToMyProfile: "Mening profilimga qaytish",
+    foundUserStats: "Foydalanuvchi statistikasi"
   }
 };
